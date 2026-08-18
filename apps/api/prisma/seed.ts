@@ -252,6 +252,69 @@ async function main() {
     create: { key: 'REQUEST_TIMEOUT_SECONDS', value: '15', description: 'Driver request response timeout' },
   });
 
+  // 6. Seed Popular Destinations
+  const popularDestinations = [
+    {
+      name: 'IGI Airport T3',
+      address: 'Indira Gandhi International Airport, New Delhi',
+      latitude: 28.5562,
+      longitude: 77.1000,
+      imageUrl: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=400&q=80',
+      rating: 4.9,
+      category: 'Airport',
+    },
+    {
+      name: 'Connaught Place',
+      address: 'Radial Road, Connaught Place, New Delhi',
+      latitude: 28.6139,
+      longitude: 77.2090,
+      imageUrl: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=400&q=80',
+      rating: 4.8,
+      category: 'Shopping & Dining',
+    },
+    {
+      name: 'Cyber Hub Gurugram',
+      address: 'DLF Cyber City, Sector 24, Gurugram',
+      latitude: 28.4950,
+      longitude: 77.0890,
+      imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
+      rating: 4.9,
+      category: 'Corporate Hub',
+    },
+    {
+      name: 'Select CITYWALK Saket',
+      address: 'District Centre, Saket, New Delhi',
+      latitude: 28.5286,
+      longitude: 77.2192,
+      imageUrl: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=400&q=80',
+      rating: 4.7,
+      category: 'Mall',
+    },
+    {
+      name: 'New Delhi Railway Station',
+      address: 'Bhavbhuti Marg, Ratan Lal Market, New Delhi',
+      latitude: 28.6430,
+      longitude: 77.2194,
+      imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=400&q=80',
+      rating: 4.8,
+      category: 'Railway Station',
+    },
+    {
+      name: 'India Gate',
+      address: 'Rajpath, India Gate, New Delhi',
+      latitude: 28.6129,
+      longitude: 77.2295,
+      imageUrl: 'https://images.unsplash.com/photo-1597040663442-18115668a6fc?auto=format&fit=crop&w=400&q=80',
+      rating: 4.9,
+      category: 'Monuments',
+    },
+  ];
+
+  for (const pd of popularDestinations) {
+    await prisma.popularDestination.create({ data: pd });
+  }
+  console.log('✅ Popular Destinations seeded successfully!');
+
   console.log('🎉 SAFAR Database Seeding Completed Successfully!');
 }
 

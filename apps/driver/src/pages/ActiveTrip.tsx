@@ -7,7 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Ride } from '@safar/shared';
 import { MapPin, Navigation, Phone, CheckCircle, ArrowLeft, Banknote, QrCode } from 'lucide-react';
 
-const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
 export const ActiveTrip: React.FC = () => {
   const { rideId } = useParams<{ rideId: string }>();
@@ -149,7 +149,7 @@ export const ActiveTrip: React.FC = () => {
       </div>
 
       {/* Action Drawer */}
-      <div className="relative z-10 w-full max-w-lg mx-auto glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
+      <div className="relative z-10 w-full max-w-lg mx-auto glass-panel p-5 pb-8 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
         <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
 
         {/* Passenger Info */}

@@ -7,6 +7,7 @@ import { Dashboard } from './pages/Dashboard';
 import { LiveMap } from './pages/LiveMap';
 import { KycManagement } from './pages/KycManagement';
 import { VehicleManagement } from './pages/VehicleManagement';
+import { DestinationManagement } from './pages/DestinationManagement';
 import { DriverManagement } from './pages/DriverManagement';
 import { RiderManagement } from './pages/RiderManagement';
 import { RideManagement } from './pages/RideManagement';
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
                   <Route path="/live-map" element={<LiveMap />} />
                   <Route path="/kyc" element={<KycManagement />} />
                   <Route path="/vehicles" element={<VehicleManagement />} />
+                  <Route path="/destinations" element={<DestinationManagement />} />
                   <Route path="/drivers" element={<DriverManagement />} />
                   <Route path="/riders" element={<RiderManagement />} />
                   <Route path="/rides" element={<RideManagement />} />

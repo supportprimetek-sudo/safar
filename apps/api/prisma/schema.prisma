@@ -195,3 +195,17 @@ model SystemSetting {
   description String?
   updatedAt   DateTime @updatedAt
 }
+
+model PopularDestination {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  latitude    Float
+  longitude   Float
+  imageUrl    String?
+  rating      Float?   @default(4.8)
+  category    String?  @default("Popular")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

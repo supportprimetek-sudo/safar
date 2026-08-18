@@ -136,3 +136,67 @@ export async function updateDriverStatus(req: AuthRequest, res: Response) {
     return res.status(500).json({ success: false, message: err.message });
   }
 }
+
+export async function getPopularDestinations(req: AuthRequest, res: Response) {
+  try {
+    const destinations = await prisma.popularDestination.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    return res.json({ success: true, data: destinations });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function createPopularDestination(req: AuthRequest, res: Response) {
+  try {
+    const { name, address, latitude, longitude, imageUrl, rating, category } = req.body;
+    const created = await prisma.popularDestination.create({
+      data: {
+        name,
+        address,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=400&q=80',
+        rating: rating ? parseFloat(rating) : 4.8,
+        category: category || 'Popular',
+      },
+    });
+    return res.json({ success: true, message: 'Popular destination created', data: created });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function updatePopularDestination(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+    const { name, address, latitude, longitude, imageUrl, rating, category, isActive } = req.body;
+    const updated = await prisma.popularDestination.update({
+      where: { id },
+      data: {
+        ...(name && { name }),
+        ...(address && { address }),
+        ...(latitude !== undefined && { latitude: parseFloat(latitude) }),
+        ...(longitude !== undefined && { longitude: parseFloat(longitude) }),
+        ...(imageUrl && { imageUrl }),
+        ...(rating !== undefined && { rating: parseFloat(rating) }),
+        ...(category && { category }),
+        ...(isActive !== undefined && { isActive }),
+      },
+    });
+    return res.json({ success: true, message: 'Popular destination updated', data: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function deletePopularDestination(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+    await prisma.popularDestination.delete({ where: { id } });
+    return res.json({ success: true, message: 'Popular destination deleted' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}

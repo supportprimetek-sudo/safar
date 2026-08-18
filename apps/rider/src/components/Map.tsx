@@ -1,21 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { Crosshair } from 'lucide-react';
 
-const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
 interface MapProps {
   pickup?: { lat: number; lng: number; address: string } | null;
   destination?: { lat: number; lng: number; address: string } | null;
   driverLocation?: { lat: number; lng: number } | null;
   className?: string;
+  onPickupDragEnd?: (coords: { lat: number; lng: number }) => void;
+  onDestDragEnd?: (coords: { lat: number; lng: number }) => void;
+  onRecenterGps?: (coords: { lat: number; lng: number }) => void;
 }
 
 // Custom DivIcon Badges
 const createPickupIcon = () =>
   L.divIcon({
     className: 'custom-icon',
-    html: `<div class="marker-badge-pickup w-8 h-8 text-sm">P</div>`,
+    html: `<div class="marker-badge-pickup w-8 h-8 text-sm flex items-center justify-center font-bold">P</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
   });
@@ -23,7 +27,7 @@ const createPickupIcon = () =>
 const createDropIcon = () =>
   L.divIcon({
     className: 'custom-icon',
-    html: `<div class="marker-badge-drop w-8 h-8 text-sm">D</div>`,
+    html: `<div class="marker-badge-drop w-8 h-8 text-sm flex items-center justify-center font-bold">D</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
   });
@@ -54,9 +58,18 @@ function MapRecenter({ pickup, destination }: MapProps) {
   return null;
 }
 
-export const MapComponent: React.FC<MapProps> = ({ pickup, destination, driverLocation, className = 'w-full h-full' }) => {
-  // Default position: New Delhi
+export const MapComponent: React.FC<MapProps> = ({
+  pickup,
+  destination,
+  driverLocation,
+  className = 'w-full h-full',
+  onPickupDragEnd,
+  onDestDragEnd,
+  onRecenterGps,
+}) => {
   const defaultCenter = pickup ? [pickup.lat, pickup.lng] : [28.6139, 77.209];
+  const pickupMarkerRef = useRef<L.Marker>(null);
+  const destMarkerRef = useRef<L.Marker>(null);
 
   const polylineCoords =
     pickup && destination
@@ -66,8 +79,60 @@ export const MapComponent: React.FC<MapProps> = ({ pickup, destination, driverLo
         ]
       : [];
 
+  const pickupEventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = pickupMarkerRef.current;
+        if (marker != null && onPickupDragEnd) {
+          const latLng = marker.getLatLng();
+          onPickupDragEnd({ lat: latLng.lat, lng: latLng.lng });
+        }
+      },
+    }),
+    [onPickupDragEnd]
+  );
+
+  const destEventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = destMarkerRef.current;
+        if (marker != null && onDestDragEnd) {
+          const latLng = marker.getLatLng();
+          onDestDragEnd({ lat: latLng.lat, lng: latLng.lng });
+        }
+      },
+    }),
+    [onDestDragEnd]
+  );
+
+  const handleGetCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          if (onRecenterGps) onRecenterGps(coords);
+        },
+        (err) => {
+          console.warn('GPS location error:', err);
+          // Fallback Delhi GPS
+          if (onRecenterGps) onRecenterGps({ lat: 28.6139, lng: 77.209 });
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  };
+
   return (
     <div className={`relative ${className}`}>
+      {/* Recenter Crosshair Floating Button */}
+      <button
+        onClick={handleGetCurrentLocation}
+        title="Recenter Map to Current GPS Location"
+        className="absolute top-20 right-4 z-20 w-11 h-11 bg-safar-card/90 backdrop-blur-md border border-white/10 text-safar-teal hover:text-white rounded-2xl flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
+      >
+        <Crosshair className="w-5 h-5 group-hover:rotate-45 transition-transform" />
+      </button>
+
       <MapContainer
         center={defaultCenter as [number, number]}
         zoom={13}
@@ -83,17 +148,35 @@ export const MapComponent: React.FC<MapProps> = ({ pickup, destination, driverLo
         <MapRecenter pickup={pickup} destination={destination} />
 
         {pickup && (
-          <Marker position={[pickup.lat, pickup.lng]} icon={createPickupIcon()}>
+          <Marker
+            draggable={!!onPickupDragEnd}
+            eventHandlers={pickupEventHandlers}
+            ref={pickupMarkerRef}
+            position={[pickup.lat, pickup.lng]}
+            icon={createPickupIcon()}
+          >
             <Popup className="custom-popup">
-              <div className="text-xs font-bold text-gray-900">Pickup: {pickup.address}</div>
+              <div className="text-xs font-bold text-gray-900">
+                Pickup: {pickup.address}
+                <div className="text-[10px] text-gray-500 font-semibold mt-0.5">Drag marker to adjust location</div>
+              </div>
             </Popup>
           </Marker>
         )}
 
         {destination && (
-          <Marker position={[destination.lat, destination.lng]} icon={createDropIcon()}>
+          <Marker
+            draggable={!!onDestDragEnd}
+            eventHandlers={destEventHandlers}
+            ref={destMarkerRef}
+            position={[destination.lat, destination.lng]}
+            icon={createDropIcon()}
+          >
             <Popup className="custom-popup">
-              <div className="text-xs font-bold text-gray-900">Destination: {destination.address}</div>
+              <div className="text-xs font-bold text-gray-900">
+                Destination: {destination.address}
+                <div className="text-[10px] text-gray-500 font-semibold mt-0.5">Drag marker to adjust location</div>
+              </div>
             </Popup>
           </Marker>
         )}

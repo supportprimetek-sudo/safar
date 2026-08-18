@@ -12,6 +12,7 @@ export const Sidebar: React.FC = () => {
     { to: '/live-map', label: 'Live Operations Map', icon: Map },
     { to: '/kyc', label: 'KYC Verification Queue', icon: FileCheck },
     { to: '/vehicles', label: 'Vehicles & Fare Rules', icon: Car },
+    { to: '/destinations', label: 'Popular Destinations', icon: MapPin },
     { to: '/drivers', label: 'Driver Management', icon: Users },
     { to: '/riders', label: 'Rider Management', icon: UserCheck },
     { to: '/rides', label: 'Ride History Monitor', icon: Route },

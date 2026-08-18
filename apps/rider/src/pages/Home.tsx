@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { apiFetch } from '../api';
@@ -7,35 +7,121 @@ import { VehicleSelector } from '../components/VehicleSelector';
 import { SearchingDriver } from '../components/SearchingDriver';
 import { ActiveRideSheet } from '../components/ActiveRideSheet';
 import { PaymentModal } from '../components/PaymentModal';
+import { BottomNav, RiderTab } from '../components/BottomNav';
+import { PlacesView } from '../components/PlacesView';
+import { ChatsView } from '../components/ChatsView';
+import { ProfileView } from '../components/ProfileView';
+import { History } from './History';
 import { FareEstimate, Ride, SOCKET_EVENTS } from '@safar/shared';
-import { MapPin, Navigation, Search, User, LogOut, History } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, MapPin, Navigation, Crosshair, Loader2 } from 'lucide-react';
 
 export const Home: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { socket, connectionState } = useSocket();
-  const navigate = useNavigate();
 
-  // Booking Flow Steps: 'SEARCH_LOCATION' | 'SELECT_VEHICLE' | 'SEARCHING_DRIVER' | 'ACTIVE_RIDE' | 'PAYMENT'
+  // Tab Navigation State
+  const [activeTab, setActiveTab] = useState<RiderTab>('home');
+
+  // Booking Flow Steps
   const [step, setStep] = useState<'SEARCH_LOCATION' | 'SELECT_VEHICLE' | 'SEARCHING_DRIVER' | 'ACTIVE_RIDE' | 'PAYMENT'>('SEARCH_LOCATION');
 
   // Address & Coordinate state
   const [pickupAddress, setPickupAddress] = useState('Connaught Place, New Delhi');
-  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number }>({ lat: 28.6139, lng: 77.209 });
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number }>({ lat: 28.6139, lng: 77.2090 });
   const [destAddress, setDestAddress] = useState('Cyber Hub, Gurugram');
-  const [destCoords, setDestCoords] = useState<{ lat: number; lng: number }>({ lat: 28.495, lng: 77.089 });
+  const [destCoords, setDestCoords] = useState<{ lat: number; lng: number }>({ lat: 28.4950, lng: 77.0890 });
 
-  // Fare Estimates
+  // Autocomplete Suggestions State
+  const [activeField, setActiveField] = useState<'pickup' | 'dest' | null>(null);
+  const [suggestions, setSuggestions] = useState<{ display_name: string; lat: string; lon: string }[]>([]);
+  const [searchingAddress, setSearchingAddress] = useState(false);
+
+  // Fare Estimates & Ride
   const [estimates, setEstimates] = useState<FareEstimate[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  // Active Ride State
   const [currentRide, setCurrentRide] = useState<Ride | null>(null);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [upiPayload, setUpiPayload] = useState<string>('');
 
-  // 1. Calculate Fare Estimates
+  // 1. Reverse Geocode helper (Coordinates -> Address)
+  const reverseGeocode = async (lat: number, lng: number, field: 'pickup' | 'dest') => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      if (data && data.display_name) {
+        const shortAddress = data.display_name.split(',').slice(0, 3).join(', ');
+        if (field === 'pickup') setPickupAddress(shortAddress);
+        else setDestAddress(shortAddress);
+      }
+    } catch (err) {
+      console.warn('Reverse geocode error:', err);
+    }
+  };
+
+  // 2. Autocomplete search (Text -> Suggestions)
+  const handleAddressInputChange = (text: string, field: 'pickup' | 'dest') => {
+    if (field === 'pickup') setPickupAddress(text);
+    else setDestAddress(text);
+
+    setActiveField(field);
+
+    if (text.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    setSearchingAddress(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=5`);
+        const data = await res.json();
+        setSuggestions(data || []);
+      } catch (err) {
+        console.warn('Autocomplete fetch error:', err);
+      } finally {
+        setSearchingAddress(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  };
+
+  const handleSelectSuggestion = (sug: { display_name: string; lat: string; lon: string }) => {
+    const lat = parseFloat(sug.lat);
+    const lng = parseFloat(sug.lon);
+    const shortAddress = sug.display_name.split(',').slice(0, 3).join(', ');
+
+    if (activeField === 'pickup') {
+      setPickupAddress(shortAddress);
+      setPickupCoords({ lat, lng });
+    } else {
+      setDestAddress(shortAddress);
+      setDestCoords({ lat, lng });
+    }
+
+    setSuggestions([]);
+    setActiveField(null);
+  };
+
+  // 3. Drag Handlers for Map Markers
+  const handlePickupMarkerDrag = (coords: { lat: number; lng: number }) => {
+    setPickupCoords(coords);
+    reverseGeocode(coords.lat, coords.lng, 'pickup');
+  };
+
+  const handleDestMarkerDrag = (coords: { lat: number; lng: number }) => {
+    setDestCoords(coords);
+    reverseGeocode(coords.lat, coords.lng, 'dest');
+  };
+
+  // 4. GPS Recenter Handler
+  const handleRecenterGps = (coords: { lat: number; lng: number }) => {
+    setPickupCoords(coords);
+    reverseGeocode(coords.lat, coords.lng, 'pickup');
+  };
+
+  // 5. Calculate Fare Estimates
   const handleCalculateFare = async () => {
     if (!pickupAddress || !destAddress) return;
     setLoading(true);
@@ -61,7 +147,7 @@ export const Home: React.FC = () => {
     }
   };
 
-  // 2. Request Ride
+  // 6. Request Ride
   const handleConfirmBooking = async () => {
     if (!selectedVehicleId) return;
     setLoading(true);
@@ -83,7 +169,6 @@ export const Home: React.FC = () => {
       setCurrentRide(ride);
       setStep('SEARCHING_DRIVER');
 
-      // Join socket room
       if (socket) {
         socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, ride.id);
       }
@@ -94,26 +179,32 @@ export const Home: React.FC = () => {
     }
   };
 
+  // Select place from Places tab
+  const handleSelectPlaceFromTab = (address: string, coords: { lat: number; lng: number }) => {
+    setDestAddress(address);
+    setDestCoords(coords);
+    setActiveTab('home');
+    setStep('SEARCH_LOCATION');
+  };
+
   // Socket Realtime Listeners
   useEffect(() => {
     if (!socket) return;
 
     const onRideAccepted = (payload: { rideId: string; driver: any }) => {
-      console.log('⚡ Socket: Ride Accepted', payload);
       setCurrentRide((prev) => (prev ? { ...prev, driver: payload.driver, rideStatus: 'DRIVER_ACCEPTED' } : prev));
       if (payload.driver?.currentLatitude && payload.driver?.currentLongitude) {
         setDriverLocation({ lat: payload.driver.currentLatitude, lng: payload.driver.currentLongitude });
       }
       setStep('ACTIVE_RIDE');
+      setActiveTab('home');
     };
 
-    const onDriverArrived = (payload: any) => {
-      console.log('⚡ Socket: Driver Arrived', payload);
+    const onDriverArrived = () => {
       setCurrentRide((prev) => (prev ? { ...prev, rideStatus: 'DRIVER_ARRIVED' } : prev));
     };
 
-    const onRideStarted = (payload: any) => {
-      console.log('⚡ Socket: Ride Started', payload);
+    const onRideStarted = () => {
       setCurrentRide((prev) => (prev ? { ...prev, rideStatus: 'IN_PROGRESS' } : prev));
     };
 
@@ -122,9 +213,9 @@ export const Home: React.FC = () => {
     };
 
     const onRideCompleted = (payload: { finalFare: number }) => {
-      console.log('⚡ Socket: Ride Completed', payload);
       setCurrentRide((prev) => (prev ? { ...prev, rideStatus: 'PAYMENT_PENDING', finalFare: payload.finalFare } : prev));
       setStep('PAYMENT');
+      setActiveTab('home');
       fetchPaymentInfo();
     };
 
@@ -150,7 +241,7 @@ export const Home: React.FC = () => {
     };
   }, [socket]);
 
-  // Fallback Polling (Every 3s if disconnected or during active ride)
+  // Fallback Polling
   useEffect(() => {
     if (!currentRide?.id || ['COMPLETED', 'CANCELLED'].includes(currentRide.rideStatus)) return;
 
@@ -164,7 +255,6 @@ export const Home: React.FC = () => {
         }
 
         if (updatedStatus !== currentRide.rideStatus) {
-          console.log(`🔄 Fallback Poll: Ride Status updated to ${updatedStatus}`);
           setCurrentRide((prev) => (prev ? { ...prev, rideStatus: updatedStatus, driver: res.data.driver } : prev));
 
           if (['DRIVER_ACCEPTED', 'DRIVER_ARRIVING', 'DRIVER_ARRIVED', 'IN_PROGRESS'].includes(updatedStatus)) {
@@ -174,9 +264,7 @@ export const Home: React.FC = () => {
             fetchPaymentInfo();
           }
         }
-      } catch (err) {
-        console.error('Polling error:', err);
-      }
+      } catch (err) {}
     }, 3000);
 
     return () => clearInterval(interval);
@@ -240,109 +328,133 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          {connectionState === 'POLLING_FALLBACK' && (
-            <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold">
-              Polling Fallback
-            </span>
-          )}
-
-          <button
-            onClick={() => navigate('/history')}
-            className="w-10 h-10 rounded-2xl bg-safar-card/90 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-safar-card"
-          >
-            <History className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={logout}
-            className="w-10 h-10 rounded-2xl bg-safar-card/90 backdrop-blur-md border border-white/10 flex items-center justify-center text-red-400 hover:bg-safar-card"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
-        </div>
+        {connectionState === 'POLLING_FALLBACK' && (
+          <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold">
+            Polling Fallback
+          </span>
+        )}
       </div>
 
-      {/* Main Interactive Leaflet Map */}
+      {/* Main Tab Views */}
       <div className="flex-1 w-full h-full relative z-0">
-        <MapComponent
-          pickup={pickupCoords ? { ...pickupCoords, address: pickupAddress } : null}
-          destination={destCoords ? { ...destCoords, address: destAddress } : null}
-          driverLocation={driverLocation}
-        />
-      </div>
-
-      {/* Dynamic Bottom Sheet Interface */}
-      <div className="relative z-10 w-full max-w-lg mx-auto">
-        {step === 'SEARCH_LOCATION' && (
-          <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
-            <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
-            <h3 className="text-lg font-black text-white px-1">Where are you going?</h3>
-
-            <div className="bg-safar-card p-4 rounded-2xl border border-white/5 space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 rounded-full bg-white border-2 border-safar-teal" />
-                <input
-                  type="text"
-                  value={pickupAddress}
-                  onChange={(e) => setPickupAddress(e.target.value)}
-                  placeholder="Enter Pickup Address"
-                  className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                />
-              </div>
-
-              <div className="border-b border-white/5" />
-
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 rounded-full bg-safar-teal" />
-                <input
-                  type="text"
-                  value={destAddress}
-                  onChange={(e) => setDestAddress(e.target.value)}
-                  placeholder="Enter Destination"
-                  className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                />
-              </div>
+        {activeTab === 'home' && (
+          <div className="w-full h-full relative flex flex-col justify-end">
+            <div className="flex-1 w-full h-full relative z-0">
+              <MapComponent
+                pickup={pickupCoords ? { ...pickupCoords, address: pickupAddress } : null}
+                destination={destCoords ? { ...destCoords, address: destAddress } : null}
+                driverLocation={driverLocation}
+                onPickupDragEnd={handlePickupMarkerDrag}
+                onDestDragEnd={handleDestMarkerDrag}
+                onRecenterGps={handleRecenterGps}
+              />
             </div>
 
-            <button
-              onClick={handleCalculateFare}
-              disabled={loading}
-              className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition-all"
-            >
-              <Search className="w-5 h-5" />
-              <span>{loading ? 'Calculating Fares...' : 'Search Rides'}</span>
-            </button>
+            {/* Bottom Booking Sheets */}
+            <div className="relative z-10 w-full max-w-lg mx-auto pb-24 px-3 sm:px-4">
+              {step === 'SEARCH_LOCATION' && (
+                <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
+                  <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
+                  <h3 className="text-lg font-black text-white px-1">Where are you going?</h3>
+
+                  <div className="bg-safar-card p-4 rounded-2xl border border-white/5 space-y-3 relative">
+                    {/* Pickup Address Input */}
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 rounded-full bg-white border-2 border-safar-teal flex-shrink-0" />
+                      <input
+                        type="text"
+                        value={pickupAddress}
+                        onFocus={() => setActiveField('pickup')}
+                        onChange={(e) => handleAddressInputChange(e.target.value, 'pickup')}
+                        placeholder="Enter Pickup Address"
+                        className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="border-b border-white/5" />
+
+                    {/* Destination Address Input */}
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 rounded-full bg-safar-teal flex-shrink-0" />
+                      <input
+                        type="text"
+                        value={destAddress}
+                        onFocus={() => setActiveField('dest')}
+                        onChange={(e) => handleAddressInputChange(e.target.value, 'dest')}
+                        placeholder="Enter Destination"
+                        className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Autocomplete Dropdown Suggestions */}
+                    {activeField && suggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-safar-card/95 backdrop-blur-xl border border-safar-teal/30 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto">
+                        {suggestions.map((sug, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => handleSelectSuggestion(sug)}
+                            className="p-3 hover:bg-safar-teal/10 flex items-start space-x-3 cursor-pointer transition-colors"
+                          >
+                            <MapPin className="w-4 h-4 text-safar-teal mt-0.5 flex-shrink-0" />
+                            <div className="text-xs">
+                              <div className="font-bold text-white leading-tight">
+                                {sug.display_name.split(',')[0]}
+                              </div>
+                              <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">
+                                {sug.display_name}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleCalculateFare}
+                    disabled={loading}
+                    className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition-all active:scale-98"
+                  >
+                    <Search className="w-5 h-5" />
+                    <span>{loading ? 'Calculating Fares...' : 'Search Rides'}</span>
+                  </button>
+                </div>
+              )}
+
+              {step === 'SELECT_VEHICLE' && (
+                <VehicleSelector
+                  estimates={estimates}
+                  selectedVehicleId={selectedVehicleId}
+                  onSelect={(id) => setSelectedVehicleId(id)}
+                  onConfirm={handleConfirmBooking}
+                  loading={loading}
+                />
+              )}
+
+              {step === 'SEARCHING_DRIVER' && <SearchingDriver onCancel={handleCancelRide} />}
+
+              {step === 'ACTIVE_RIDE' && currentRide && <ActiveRideSheet ride={currentRide} onCancelRide={handleCancelRide} />}
+
+              {step === 'PAYMENT' && currentRide && (
+                <PaymentModal
+                  amount={currentRide.finalFare || currentRide.estimatedFare}
+                  upiPayload={upiPayload}
+                  onConfirmCashPayment={handleConfirmCashPayment}
+                  loading={loading}
+                />
+              )}
+            </div>
           </div>
         )}
 
-        {step === 'SELECT_VEHICLE' && (
-          <VehicleSelector
-            estimates={estimates}
-            selectedVehicleId={selectedVehicleId}
-            onSelect={(id) => setSelectedVehicleId(id)}
-            onConfirm={handleConfirmBooking}
-            loading={loading}
-          />
-        )}
-
-        {step === 'SEARCHING_DRIVER' && (
-          <SearchingDriver onCancel={handleCancelRide} />
-        )}
-
-        {step === 'ACTIVE_RIDE' && currentRide && (
-          <ActiveRideSheet ride={currentRide} onCancelRide={handleCancelRide} />
-        )}
-
-        {step === 'PAYMENT' && currentRide && (
-          <PaymentModal
-            amount={currentRide.finalFare || currentRide.estimatedFare}
-            upiPayload={upiPayload}
-            onConfirmCashPayment={handleConfirmCashPayment}
-            loading={loading}
-          />
-        )}
+        {activeTab === 'places' && <PlacesView onSelectPlace={handleSelectPlaceFromTab} />}
+        {activeTab === 'history' && <History />}
+        {activeTab === 'chats' && <ChatsView />}
+        {activeTab === 'profile' && <ProfileView />}
       </div>
+
+      {/* Fixed Bottom Navigation Bar */}
+      <BottomNav activeTab={activeTab} onSelectTab={(tab) => setActiveTab(tab)} />
     </div>
   );
 };

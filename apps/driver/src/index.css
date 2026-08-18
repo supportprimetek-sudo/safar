@@ -3,10 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  input, textarea {
+    user-select: text;
+  }
   body {
     background-color: #11151D;
     color: #FFFFFF;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top);
   }
 }
 
