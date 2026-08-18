@@ -1,0 +1,8 @@
+.env
+.env.local
+.env.development
+.env.test
+dev.db
+dev.db-journal
+node_modules
+dist

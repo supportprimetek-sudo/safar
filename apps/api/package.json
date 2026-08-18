@@ -1,0 +1,37 @@
+{
+  "name": "@safar/api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "prisma db push --schema=prisma/schema.sqlite.prisma && tsx watch src/server.ts",
+    "dev:sqlite": "prisma db push --schema=prisma/schema.sqlite.prisma && tsx prisma/seed.ts && tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "prisma db push && tsx prisma/seed.ts && node dist/server.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.13.0",
+    "@safar/shared": "1.0.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.12.7",
+    "prisma": "^5.13.0",
+    "tsx": "^4.9.3",
+    "typescript": "^5.4.5"
+  }
+}

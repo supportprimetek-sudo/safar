@@ -1,0 +1,197 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  role          String         // RIDER, DRIVER, ADMIN
+  fullName      String
+  phone         String
+  profileImage  String?
+  status        String         @default("ACTIVE")
+  isVerified    Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lastLoginAt   DateTime?
+
+  riderProfile  RiderProfile?
+  driverProfile DriverProfile?
+  notifications Notification[]
+  ridesAsRider  Ride[]         @relation("RiderRides")
+  adminLogs     AdminAuditLog[]
+}
+
+model RiderProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  emergencyContact String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DriverProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  phone              String
+  profileImage       String?
+  dateOfBirth        String?
+  address            String?
+  kycStatus          String   @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED
+  driverStatus       String   @default("PENDING") // PENDING, APPROVED, SUSPENDED, BLOCKED
+  onlineStatus       String   @default("OFFLINE") // ONLINE, OFFLINE
+  vehicleTypeId      String?
+  currentLatitude    Float?
+  currentLongitude   Float?
+  lastLocationUpdate DateTime?
+  rating             Float    @default(5.0)
+  totalRides         Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType  VehicleType?  @relation(fields: [vehicleTypeId], references: [id])
+  kycDocuments KycDocument[]
+  rides        Ride[]        @relation("DriverRides")
+  payments     Payment[]
+}
+
+model KycDocument {
+  id                 String    @id @default(uuid())
+  driverId           String
+  documentType       String    // AADHAAR_FRONT, AADHAAR_BACK, LICENCE_FRONT, LICENCE_BACK, VEHICLE_RC, INSURANCE
+  fileUrl            String
+  verificationStatus String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  uploadedAt         DateTime  @default(now())
+  verifiedAt         DateTime?
+  rejectionReason    String?
+
+  driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+}
+
+model VehicleType {
+  id              String   @id @default(uuid())
+  name            String   @unique // Moto, Auto, Safar Go, Safar Sedan, SUV
+  description     String
+  icon            String
+  image           String
+  baseFare        Float
+  perKmRate       Float
+  perMinuteRate   Float
+  minimumFare     Float
+  cancellationFee Float    @default(20.0)
+  capacity        Int      @default(4)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  drivers DriverProfile[]
+  rides   Ride[]
+}
+
+model Ride {
+  id                         String    @id @default(uuid())
+  riderId                    String
+  driverId                   String?
+  vehicleTypeId              String
+  pickupAddress              String
+  pickupLatitude             Float
+  pickupLongitude            Float
+  destinationAddress         String
+  destinationLatitude        Float
+  destinationLongitude       Float
+  distanceKm                 Float
+  estimatedDurationMinutes  Float
+  estimatedFare              Float
+  finalFare                  Float?
+  rideStatus                 String    // REQUESTED, SEARCHING_DRIVER, DRIVER_ASSIGNED, DRIVER_ACCEPTED, DRIVER_ARRIVING, DRIVER_ARRIVED, IN_PROGRESS, PAYMENT_PENDING, COMPLETED, CANCELLED
+  requestedAt                DateTime  @default(now())
+  acceptedAt                 DateTime?
+  driverArrivedAt            DateTime?
+  startedAt                  DateTime?
+  completedAt                DateTime?
+  cancelledAt                DateTime?
+  cancellationReason         String?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  rider         User          @relation("RiderRides", fields: [riderId], references: [id])
+  driver        DriverProfile? @relation("DriverRides", fields: [driverId], references: [id])
+  vehicleType   VehicleType   @relation(fields: [vehicleTypeId], references: [id])
+  payment       Payment?
+  rideLocations RideLocation[]
+}
+
+model RideLocation {
+  id        String   @id @default(uuid())
+  rideId    String
+  driverId  String
+  latitude  Float
+  longitude Float
+  heading   Float?
+  speed     Float?
+  timestamp DateTime @default(now())
+
+  ride Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            String    @id @default(uuid())
+  rideId        String    @unique
+  riderId       String
+  driverId      String
+  amount        Float
+  currency      String    @default("INR")
+  paymentMethod String    // CASH, QR
+  paymentStatus String    // PENDING, PAID, FAILED, CANCELLED
+  qrReference   String?
+  confirmedBy   String?
+  confirmedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  ride   Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  driver DriverProfile @relation(fields: [driverId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  data      String?  // JSON stringified payload
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AdminAuditLog {
+  id         String   @id @default(uuid())
+  adminId    String
+  action     String
+  targetType String
+  targetId   String?
+  metadata   String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
