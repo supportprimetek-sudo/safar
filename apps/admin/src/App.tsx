@@ -12,10 +12,18 @@ import { DriverManagement } from './pages/DriverManagement';
 import { RiderManagement } from './pages/RiderManagement';
 import { RideManagement } from './pages/RideManagement';
 
-const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-[#11151D] text-white flex items-center justify-center font-bold">Loading SAFAR Control Center...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#11151D] text-white flex items-center justify-center font-bold">
+        Loading SAFAR Control Center...
+      </div>
+    );
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="flex min-h-screen bg-safar-bg text-white">
@@ -31,23 +39,15 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route
-            path="/*"
-            element={
-              <AdminLayout>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/live-map" element={<LiveMap />} />
-                  <Route path="/kyc" element={<KycManagement />} />
-                  <Route path="/vehicles" element={<VehicleManagement />} />
-                  <Route path="/destinations" element={<DestinationManagement />} />
-                  <Route path="/drivers" element={<DriverManagement />} />
-                  <Route path="/riders" element={<RiderManagement />} />
-                  <Route path="/rides" element={<RideManagement />} />
-                </Routes>
-              </AdminLayout>
-            }
-          />
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/live-map" element={<ProtectedRoute><LiveMap /></ProtectedRoute>} />
+          <Route path="/kyc" element={<ProtectedRoute><KycManagement /></ProtectedRoute>} />
+          <Route path="/vehicles" element={<ProtectedRoute><VehicleManagement /></ProtectedRoute>} />
+          <Route path="/destinations" element={<ProtectedRoute><DestinationManagement /></ProtectedRoute>} />
+          <Route path="/drivers" element={<ProtectedRoute><DriverManagement /></ProtectedRoute>} />
+          <Route path="/riders" element={<ProtectedRoute><RiderManagement /></ProtectedRoute>} />
+          <Route path="/rides" element={<ProtectedRoute><RideManagement /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
