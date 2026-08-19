@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Map, FileCheck, Car, Users, UserCheck, Route, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Map, FileCheck, Car, MapPin, Users, UserCheck, Route, LogOut, ShieldAlert } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
