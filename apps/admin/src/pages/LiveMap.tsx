@@ -15,7 +15,12 @@ export const LiveMap: React.FC = () => {
   const fetchLiveMap = async () => {
     try {
       const res = await apiFetch('/api/admin/live-map');
-      setData(res.data);
+      if (res && res.data) {
+        setData({
+          onlineDrivers: res.data.onlineDrivers || [],
+          activeRides: res.data.activeRides || [],
+        });
+      }
     } catch (err) {
       console.error('Error fetching live map:', err);
     } finally {
@@ -37,17 +42,19 @@ export const LiveMap: React.FC = () => {
       iconAnchor: [18, 18],
     });
 
-  const pickupIcon = L.divIcon({
-    className: 'custom-icon',
-    html: `<div class="bg-white text-safar-bg border-2 border-safar-teal font-extrabold w-7 h-7 rounded-full flex items-center justify-center text-xs">P</div>`,
-    iconSize: [28, 28],
-  });
+  const getPickupIcon = () =>
+    L.divIcon({
+      className: 'custom-icon',
+      html: `<div class="bg-white text-safar-bg border-2 border-safar-teal font-extrabold w-7 h-7 rounded-full flex items-center justify-center text-xs">P</div>`,
+      iconSize: [28, 28],
+    });
 
-  const dropIcon = L.divIcon({
-    className: 'custom-icon',
-    html: `<div class="bg-safar-teal text-safar-bg border-2 border-white font-extrabold w-7 h-7 rounded-full flex items-center justify-center text-xs">D</div>`,
-    iconSize: [28, 28],
-  });
+  const getDropIcon = () =>
+    L.divIcon({
+      className: 'custom-icon',
+      html: `<div class="bg-safar-teal text-safar-bg border-2 border-white font-extrabold w-7 h-7 rounded-full flex items-center justify-center text-xs">D</div>`,
+      iconSize: [28, 28],
+    });
 
   return (
     <div className="h-screen w-full relative flex flex-col">
@@ -89,8 +96,8 @@ export const LiveMap: React.FC = () => {
           {/* Render Active Rides */}
           {data.activeRides.map((ride) => (
             <React.Fragment key={ride.id}>
-              <Marker position={[ride.pickupLatitude, ride.pickupLongitude]} icon={pickupIcon} />
-              <Marker position={[ride.destinationLatitude, ride.destinationLongitude]} icon={dropIcon} />
+              <Marker position={[ride.pickupLatitude, ride.pickupLongitude]} icon={getPickupIcon()} />
+              <Marker position={[ride.destinationLatitude, ride.destinationLongitude]} icon={getDropIcon()} />
               <Polyline
                 positions={[
                   [ride.pickupLatitude, ride.pickupLongitude],
