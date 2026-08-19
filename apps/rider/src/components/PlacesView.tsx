@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
-import { MapPin, Star, Navigation, Sparkles } from 'lucide-react';
+import { Star, Navigation, Sparkles, MapPin } from 'lucide-react';
 
 interface PopularDestination {
   id: string;
@@ -21,80 +21,14 @@ export const PlacesView: React.FC<PlacesViewProps> = ({ onSelectPlace }) => {
   const [destinations, setDestinations] = useState<PopularDestination[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fallbackDestinations: PopularDestination[] = [
-    {
-      id: '1',
-      name: 'IGI Airport T3',
-      address: 'Indira Gandhi International Airport, New Delhi',
-      latitude: 28.5562,
-      longitude: 77.1000,
-      imageUrl: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=400&q=80',
-      rating: 4.9,
-      category: 'Airport',
-    },
-    {
-      id: '2',
-      name: 'Connaught Place',
-      address: 'Radial Road, Connaught Place, New Delhi',
-      latitude: 28.6139,
-      longitude: 77.2090,
-      imageUrl: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&w=400&q=80',
-      rating: 4.8,
-      category: 'Shopping & Dining',
-    },
-    {
-      id: '3',
-      name: 'Cyber Hub Gurugram',
-      address: 'DLF Cyber City, Sector 24, Gurugram',
-      latitude: 28.4950,
-      longitude: 77.0890,
-      imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80',
-      rating: 4.9,
-      category: 'Corporate Hub',
-    },
-    {
-      id: '4',
-      name: 'Select CITYWALK Saket',
-      address: 'District Centre, Saket, New Delhi',
-      latitude: 28.5286,
-      longitude: 77.2192,
-      imageUrl: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=400&q=80',
-      rating: 4.7,
-      category: 'Mall',
-    },
-    {
-      id: '5',
-      name: 'New Delhi Railway Station',
-      address: 'Bhavbhuti Marg, Ratan Lal Market, New Delhi',
-      latitude: 28.6430,
-      longitude: 77.2194,
-      imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=400&q=80',
-      rating: 4.8,
-      category: 'Railway Station',
-    },
-    {
-      id: '6',
-      name: 'India Gate',
-      address: 'Rajpath, India Gate, New Delhi',
-      latitude: 28.6129,
-      longitude: 77.2295,
-      imageUrl: 'https://images.unsplash.com/photo-1597040663442-18115668a6fc?auto=format&fit=crop&w=400&q=80',
-      rating: 4.9,
-      category: 'Monuments',
-    },
-  ];
-
   useEffect(() => {
     async function fetchDestinations() {
       try {
         const res = await apiFetch('/api/rides/popular-destinations');
-        if (res.data && res.data.length > 0) {
-          setDestinations(res.data);
-        } else {
-          setDestinations(fallbackDestinations);
-        }
+        setDestinations(res.data || []);
       } catch (err) {
-        setDestinations(fallbackDestinations);
+        console.error('Error fetching destinations:', err);
+        setDestinations([]);
       } finally {
         setLoading(false);
       }
@@ -117,7 +51,15 @@ export const PlacesView: React.FC<PlacesViewProps> = ({ onSelectPlace }) => {
 
       {/* Grid Display of Popular Destinations */}
       {loading ? (
-        <div className="text-center py-12 text-safar-textMuted font-bold">Loading destinations...</div>
+        <div className="text-center py-12 text-safar-textMuted font-bold">Loading destinations from database...</div>
+      ) : destinations.length === 0 ? (
+        <div className="bg-safar-card p-8 rounded-3xl border border-white/5 text-center space-y-3">
+          <MapPin className="w-10 h-10 text-safar-textMuted mx-auto" />
+          <h3 className="text-base font-bold text-white">No Popular Destinations Configured</h3>
+          <p className="text-xs text-safar-textMuted">
+            Popular destinations added by the Admin in the Control Panel will appear here automatically.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3.5">
           {destinations.map((dest) => (
