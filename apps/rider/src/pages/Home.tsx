@@ -74,34 +74,65 @@ export const Home: React.FC = () => {
     }
   };
 
-  // 2. Autocomplete search (Text -> Suggestions)
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 2. Autocomplete search (Text -> Suggestions with Dual API Fallback)
   const handleAddressInputChange = (text: string, field: 'pickup' | 'dest') => {
     if (field === 'pickup') setPickupAddress(text);
     else setDestAddress(text);
 
     setActiveField(field);
 
-    if (text.length < 2) {
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    if (!text || text.trim().length < 2) {
       setSuggestions([]);
+      setSearchingAddress(false);
       return;
     }
 
     setSearchingAddress(true);
-    const timer = setTimeout(async () => {
+    searchDebounceRef.current = setTimeout(async () => {
       try {
+        // Primary: Nominatim OpenStreetMap Search
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=6&addressdetails=1`
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=6&addressdetails=1`,
+          { headers: { 'Accept-Language': 'en' } }
         );
         const data = await res.json();
-        setSuggestions(data || []);
+
+        if (Array.isArray(data) && data.length > 0) {
+          setSuggestions(data);
+          setSearchingAddress(false);
+          return;
+        }
+
+        // Secondary Fallback: Photon Komoot OpenStreetMap Engine
+        const pRes = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=6`);
+        const pData = await pRes.json();
+        if (pData?.features && Array.isArray(pData.features)) {
+          const photonItems = pData.features.map((feat: any) => {
+            const props = feat.properties || {};
+            const parts = [props.name, props.street, props.city, props.state, props.country].filter(Boolean);
+            return {
+              display_name: parts.join(', '),
+              lat: feat.geometry.coordinates[1].toString(),
+              lon: feat.geometry.coordinates[0].toString(),
+            };
+          });
+          setSuggestions(photonItems);
+        } else {
+          setSuggestions([]);
+        }
       } catch (err) {
         console.warn('Autocomplete fetch error:', err);
+        setSuggestions([]);
       } finally {
         setSearchingAddress(false);
       }
-    }, 300);
-
-    return () => clearTimeout(timer);
+    }, 250);
   };
 
   const handleSelectSuggestion = (sug: { display_name: string; lat: string; lon: string }) => {
@@ -451,25 +482,62 @@ export const Home: React.FC = () => {
                       </div>
 
                       {/* Autocomplete Dropdown Suggestions */}
-                      {activeField && suggestions.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-safar-card/95 backdrop-blur-xl border border-safar-teal/30 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto">
-                          {suggestions.map((sug, idx) => (
-                            <div
-                              key={idx}
-                              onClick={() => handleSelectSuggestion(sug)}
-                              className="p-3 hover:bg-safar-teal/10 flex items-start space-x-3 cursor-pointer transition-colors"
-                            >
-                              <MapPin className="w-4 h-4 text-safar-teal mt-0.5 flex-shrink-0" />
-                              <div className="text-xs">
-                                <div className="font-bold text-white leading-tight">
-                                  {sug.display_name.split(',')[0]}
-                                </div>
-                                <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">
-                                  {sug.display_name}
+                      {activeField && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-safar-card/95 backdrop-blur-xl border border-safar-teal/40 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-white/5 max-h-60 overflow-y-auto">
+                          {searchingAddress && (
+                            <div className="p-3 text-xs text-safar-teal font-bold flex items-center space-x-2">
+                              <Loader2 className="w-4 h-4 animate-spin text-safar-teal flex-shrink-0" />
+                              <span>Searching places...</span>
+                            </div>
+                          )}
+
+                          {suggestions.length > 0 ? (
+                            suggestions.map((sug, idx) => (
+                              <div
+                                key={idx}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  handleSelectSuggestion(sug);
+                                }}
+                                className="p-3 hover:bg-safar-teal/15 flex items-start space-x-3 cursor-pointer transition-colors"
+                              >
+                                <MapPin className="w-4 h-4 text-safar-teal mt-0.5 flex-shrink-0" />
+                                <div className="text-xs min-w-0 flex-1">
+                                  <div className="font-bold text-white leading-tight truncate">
+                                    {sug.display_name.split(',')[0]}
+                                  </div>
+                                  <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">
+                                    {sug.display_name}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))
+                          ) : (
+                            !searchingAddress && (
+                              <div className="p-2 space-y-1">
+                                <div className="px-3 py-1 text-[10px] uppercase tracking-wider font-extrabold text-safar-textMuted">
+                                  Popular Quick Destinations
+                                </div>
+                                {POPULAR_QUICK_DESTINATIONS.map((pop, idx) => (
+                                  <div
+                                    key={`pop-${idx}`}
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      const sug = { display_name: pop.address, lat: pop.lat.toString(), lon: pop.lon.toString() };
+                                      handleSelectSuggestion(sug);
+                                    }}
+                                    className="p-2.5 hover:bg-safar-teal/15 rounded-xl flex items-start space-x-2.5 cursor-pointer transition-colors"
+                                  >
+                                    <Navigation className="w-3.5 h-3.5 text-safar-teal mt-0.5 flex-shrink-0" />
+                                    <div className="text-xs min-w-0 flex-1">
+                                      <div className="font-bold text-white leading-tight">{pop.name}</div>
+                                      <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">{pop.address}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                          )}
                         </div>
                       )}
                     </div>
