@@ -7,7 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Ride } from '@safar/shared';
 import { MapPin, Navigation, Phone, CheckCircle, ArrowLeft, Banknote, QrCode } from 'lucide-react';
 
-const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
 export const ActiveTrip: React.FC = () => {
   const { rideId } = useParams<{ rideId: string }>();

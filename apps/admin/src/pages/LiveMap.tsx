@@ -3,7 +3,7 @@ import { apiFetch } from '../api';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 
-const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
 export const LiveMap: React.FC = () => {
   const [data, setData] = useState<{ onlineDrivers: any[]; activeRides: any[] }>({

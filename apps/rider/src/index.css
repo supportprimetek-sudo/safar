@@ -19,15 +19,14 @@
   }
 }
 
-/* Custom Leaflet Map Dark Inversion & Styling */
+/* Custom Leaflet Map Light Styling */
 .leaflet-container {
-  background: #11151D !important;
+  background: #E5E7EB !important;
   font-family: inherit;
 }
 
-/* CARTO Voyager/Dark Tiles custom glow filter */
 .leaflet-tile-pane {
-  filter: brightness(0.85) contrast(1.1) saturate(0.9);
+  filter: none;
 }
 
 /* Circular Leaflet Custom Badges */
