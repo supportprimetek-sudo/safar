@@ -41,69 +41,41 @@ async function confirmPayment(req, res) {
         const { paymentMethod } = req.body; // CASH or QR
         const ride = await prisma_1.prisma.ride.findUnique({
             where: { id },
-            include: { payment: true, driver: true },
+            include: { payment: true },
         });
         if (!ride)
             return res.status(404).json({ success: false, message: 'Ride not found' });
-        // Ensure valid driverId for Payment model relation
-        let driverId = ride.driverId;
-        if (!driverId) {
-            const anyDriver = await prisma_1.prisma.driverProfile.findFirst();
-            if (anyDriver) {
-                driverId = anyDriver.id;
-            }
-        }
         const amount = ride.finalFare || ride.estimatedFare || 100;
-        let payment;
-        const existingPayment = await prisma_1.prisma.payment.findUnique({
+        // Upsert payment safely
+        const payment = await prisma_1.prisma.payment.upsert({
             where: { rideId: id },
-        });
-        if (existingPayment) {
-            payment = await prisma_1.prisma.payment.update({
-                where: { rideId: id },
-                data: {
-                    paymentMethod: paymentMethod || 'CASH',
-                    paymentStatus: 'PAID',
-                    confirmedBy: req.user?.id || 'RIDER',
-                    confirmedAt: new Date(),
-                },
-            });
-        }
-        else if (driverId) {
-            payment = await prisma_1.prisma.payment.create({
-                data: {
-                    rideId: id,
-                    riderId: ride.riderId,
-                    driverId: driverId,
-                    amount: amount,
-                    paymentMethod: paymentMethod || 'CASH',
-                    paymentStatus: 'PAID',
-                    confirmedBy: req.user?.id || 'RIDER',
-                    confirmedAt: new Date(),
-                },
-            });
-        }
-        else {
-            // Fallback response object if no driver profile exists
-            payment = {
-                id: `pay-${Date.now()}`,
+            update: {
+                paymentMethod: paymentMethod || 'CASH',
+                paymentStatus: 'PAID',
+                confirmedBy: req.user?.id || 'RIDER',
+                confirmedAt: new Date(),
+            },
+            create: {
                 rideId: id,
                 riderId: ride.riderId,
+                driverId: ride.driverId || null,
                 amount: amount,
-                paymentStatus: 'PAID',
                 paymentMethod: paymentMethod || 'CASH',
-            };
-        }
+                paymentStatus: 'PAID',
+                confirmedBy: req.user?.id || 'RIDER',
+                confirmedAt: new Date(),
+            },
+        });
         // Update ride to COMPLETED
         const updatedRide = await prisma_1.prisma.ride.update({
             where: { id },
             data: { rideStatus: 'COMPLETED' },
         });
-        // Increment driver total rides
-        if (driverId) {
+        // Increment driver total rides if driver exists
+        if (ride.driverId) {
             try {
                 await prisma_1.prisma.driverProfile.update({
-                    where: { id: driverId },
+                    where: { id: ride.driverId },
                     data: { totalRides: { increment: 1 } },
                 });
             }

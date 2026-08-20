@@ -147,7 +147,7 @@ model Payment {
   id            String    @id @default(uuid())
   rideId        String    @unique
   riderId       String
-  driverId      String
+  driverId      String?
   amount        Float
   currency      String    @default("INR")
   paymentMethod String    // CASH, QR
@@ -158,8 +158,8 @@ model Payment {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  ride   Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
-  driver DriverProfile @relation(fields: [driverId], references: [id])
+  ride   Ride           @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  driver DriverProfile? @relation(fields: [driverId], references: [id])
 }
 
 model Notification {
