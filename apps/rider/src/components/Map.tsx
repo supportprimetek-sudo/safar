@@ -10,9 +10,11 @@ interface MapProps {
   destination?: { lat: number; lng: number; address: string } | null;
   driverLocation?: { lat: number; lng: number } | null;
   className?: string;
+  isPinningMode?: boolean;
   onPickupDragEnd?: (coords: { lat: number; lng: number }) => void;
   onDestDragEnd?: (coords: { lat: number; lng: number }) => void;
   onRecenterGps?: (coords: { lat: number; lng: number }) => void;
+  onCenterChange?: (coords: { lat: number; lng: number }) => void;
 }
 
 // Custom DivIcon Badges
@@ -40,15 +42,19 @@ const createDriverIcon = () =>
     iconAnchor: [20, 20],
   });
 
-// Map Controller for click events and smooth bounds fit
+// Map Controller for click events and smooth bounds fit without snapping during drag
 function MapController({
   pickup,
   destination,
+  isPinningMode,
   onMapClick,
+  onCenterChange,
 }: {
   pickup?: { lat: number; lng: number } | null;
   destination?: { lat: number; lng: number } | null;
+  isPinningMode?: boolean;
   onMapClick?: (coords: { lat: number; lng: number }) => void;
+  onCenterChange?: (coords: { lat: number; lng: number }) => void;
 }) {
   const map = useMapEvents({
     click(e) {
@@ -56,17 +62,27 @@ function MapController({
         onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
       }
     },
+    moveend() {
+      if (isPinningMode && onCenterChange) {
+        const center = map.getCenter();
+        onCenterChange({ lat: center.lat, lng: center.lng });
+      }
+    },
   });
 
+  const hasFittedRef = useRef(false);
+
   useEffect(() => {
-    if (pickup && destination) {
+    // Only fit bounds initial load or when destination is newly provided, NOT during dragging
+    if (pickup && destination && !hasFittedRef.current && !isPinningMode) {
+      hasFittedRef.current = true;
       const bounds = L.latLngBounds(
         [pickup.lat, pickup.lng],
         [destination.lat, destination.lng]
       );
       map.fitBounds(bounds, { padding: [60, 60], animate: true });
     }
-  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, map]);
+  }, [pickup, destination, isPinningMode, map]);
 
   return null;
 }
@@ -76,9 +92,11 @@ export const MapComponent: React.FC<MapProps> = ({
   destination,
   driverLocation,
   className = 'w-full h-full',
+  isPinningMode = false,
   onPickupDragEnd,
   onDestDragEnd,
   onRecenterGps,
+  onCenterChange,
 }) => {
   const defaultCenter = pickup ? [pickup.lat, pickup.lng] : [28.6139, 77.209];
   const mapRef = useRef<L.Map | null>(null);
@@ -90,7 +108,7 @@ export const MapComponent: React.FC<MapProps> = ({
   const effectiveDest =
     destination ||
     (pickup
-      ? { lat: pickup.lat + 0.015, lng: pickup.lng + 0.015, address: 'Tap or drag on map to set drop location' }
+      ? { lat: pickup.lat + 0.012, lng: pickup.lng + 0.012, address: 'Tap or drag on map to set drop location' }
       : null);
 
   const polylineCoords =
@@ -171,8 +189,21 @@ export const MapComponent: React.FC<MapProps> = ({
       {/* Floating Guidance Pill */}
       <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 bg-[#202631]/95 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl flex items-center space-x-2 text-xs font-bold text-white pointer-events-none">
         <MapPin className="w-3.5 h-3.5 text-[#35D0B0] animate-bounce" />
-        <span>Tap or drag markers on map to set drop location</span>
+        <span>{isPinningMode ? 'Move map to position central drop pin' : 'Tap map or drag marker to set drop location'}</span>
       </div>
+
+      {/* Central Target Pin Overlay (Active during Pinning Mode) */}
+      {isPinningMode && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full z-30 pointer-events-none flex flex-col items-center">
+          <div className="bg-[#E53935] text-white px-3 py-1 rounded-full text-[11px] font-black shadow-2xl mb-1 border border-white/20 whitespace-nowrap animate-pulse">
+            Drop Location Here
+          </div>
+          <div className="w-10 h-10 rounded-full bg-[#E53935] border-4 border-white flex items-center justify-center shadow-2xl text-white font-black text-sm">
+            D
+          </div>
+          <div className="w-2.5 h-2.5 bg-black/40 rounded-full blur-[1px] mt-0.5" />
+        </div>
+      )}
 
       {/* Recenter Crosshair Floating Button */}
       <button
@@ -190,7 +221,7 @@ export const MapComponent: React.FC<MapProps> = ({
 
       <MapContainer
         center={defaultCenter as [number, number]}
-        zoom={13}
+        zoom={14}
         zoomControl={false}
         className="w-full h-full z-0"
         ref={mapRef}
@@ -201,7 +232,13 @@ export const MapComponent: React.FC<MapProps> = ({
           maxZoom={19}
         />
 
-        <MapController pickup={pickup} destination={destination} onMapClick={handleMapClick} />
+        <MapController
+          pickup={pickup}
+          destination={destination}
+          isPinningMode={isPinningMode}
+          onMapClick={handleMapClick}
+          onCenterChange={onCenterChange}
+        />
 
         {pickup && (
           <Marker
@@ -220,7 +257,7 @@ export const MapComponent: React.FC<MapProps> = ({
           </Marker>
         )}
 
-        {effectiveDest && (
+        {!isPinningMode && effectiveDest && (
           <Marker
             draggable={!!onDestDragEnd}
             eventHandlers={destEventHandlers}
@@ -245,7 +282,7 @@ export const MapComponent: React.FC<MapProps> = ({
           </Marker>
         )}
 
-        {polylineCoords.length > 0 && (
+        {!isPinningMode && polylineCoords.length > 0 && (
           <Polyline
             positions={polylineCoords as [number, number][]}
             pathOptions={{ color: '#35D0B0', weight: 6, opacity: 0.95 }}

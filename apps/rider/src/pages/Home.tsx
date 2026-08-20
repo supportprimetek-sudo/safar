@@ -13,7 +13,7 @@ import { ChatsView } from '../components/ChatsView';
 import { ProfileView } from '../components/ProfileView';
 import { History } from './History';
 import { FareEstimate, Ride, SOCKET_EVENTS } from '@safar/shared';
-import { Search, MapPin, Navigation, Crosshair, Loader2 } from 'lucide-react';
+import { Search, MapPin, Navigation, Crosshair, Loader2, Check } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { user } = useAuth();
@@ -110,7 +110,14 @@ export const Home: React.FC = () => {
     reverseGeocode(coords.lat, coords.lng, 'pickup');
   };
 
+  const [isPinningMode, setIsPinningMode] = useState(false);
+
   const handleDestMarkerDrag = (coords: { lat: number; lng: number }) => {
+    setDestCoords(coords);
+    reverseGeocode(coords.lat, coords.lng, 'dest');
+  };
+
+  const handleCenterChange = (coords: { lat: number; lng: number }) => {
     setDestCoords(coords);
     reverseGeocode(coords.lat, coords.lng, 'dest');
   };
@@ -346,81 +353,119 @@ export const Home: React.FC = () => {
                 pickup={pickupCoords ? { ...pickupCoords, address: pickupAddress } : null}
                 destination={destCoords ? { ...destCoords, address: destAddress } : null}
                 driverLocation={driverLocation}
+                isPinningMode={isPinningMode}
                 onPickupDragEnd={handlePickupMarkerDrag}
                 onDestDragEnd={handleDestMarkerDrag}
                 onRecenterGps={handleRecenterGps}
+                onCenterChange={handleCenterChange}
               />
             </div>
 
             {/* Bottom Booking Sheets */}
             <div className="relative z-10 w-full max-w-lg mx-auto pb-24 px-3 sm:px-4">
               {step === 'SEARCH_LOCATION' && (
-                <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
-                  <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
-                  <h3 className="text-lg font-black text-white px-1">Where are you going?</h3>
-
-                  <div className="bg-safar-card p-4 rounded-2xl border border-white/5 space-y-3 relative">
-                    {/* Pickup Address Input */}
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full bg-white border-2 border-safar-teal flex-shrink-0" />
-                      <input
-                        type="text"
-                        value={pickupAddress}
-                        onFocus={() => setActiveField('pickup')}
-                        onChange={(e) => handleAddressInputChange(e.target.value, 'pickup')}
-                        placeholder="Enter Pickup Address"
-                        className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                      />
+                isPinningMode ? (
+                  <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
+                    <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
+                    <div className="flex items-center space-x-3 bg-safar-card p-3.5 rounded-2xl border border-safar-teal/30">
+                      <div className="w-9 h-9 rounded-xl bg-safar-teal/20 text-safar-teal flex items-center justify-center font-bold flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-safar-teal animate-pulse" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[10px] uppercase tracking-wider font-extrabold text-safar-teal">Pin Drop Address</div>
+                        <div className="text-sm font-bold text-white truncate">{destAddress || 'Move map to set location'}</div>
+                      </div>
                     </div>
 
-                    <div className="border-b border-white/5" />
-
-                    {/* Destination Address Input */}
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full bg-safar-teal flex-shrink-0" />
-                      <input
-                        type="text"
-                        value={destAddress}
-                        onFocus={() => setActiveField('dest')}
-                        onChange={(e) => handleAddressInputChange(e.target.value, 'dest')}
-                        placeholder="Enter Destination"
-                        className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                      />
+                    <button
+                      onClick={() => {
+                        setIsPinningMode(false);
+                        handleCalculateFare();
+                      }}
+                      className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition-all active:scale-98"
+                    >
+                      <Check className="w-5 h-5" />
+                      <span>Confirm Drop Location</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
+                    <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
+                    <div className="flex justify-between items-center px-1">
+                      <h3 className="text-lg font-black text-white">Where are you going?</h3>
+                      <button
+                        type="button"
+                        onClick={() => setIsPinningMode(true)}
+                        className="px-3 py-1.5 bg-safar-teal/15 hover:bg-safar-teal/25 border border-safar-teal/30 rounded-xl flex items-center space-x-1.5 text-xs font-bold text-safar-teal transition-all active:scale-95"
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>Pin on Map</span>
+                      </button>
                     </div>
 
-                    {/* Autocomplete Dropdown Suggestions */}
-                    {activeField && suggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-safar-card/95 backdrop-blur-xl border border-safar-teal/30 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto">
-                        {suggestions.map((sug, idx) => (
-                          <div
-                            key={idx}
-                            onClick={() => handleSelectSuggestion(sug)}
-                            className="p-3 hover:bg-safar-teal/10 flex items-start space-x-3 cursor-pointer transition-colors"
-                          >
-                            <MapPin className="w-4 h-4 text-safar-teal mt-0.5 flex-shrink-0" />
-                            <div className="text-xs">
-                              <div className="font-bold text-white leading-tight">
-                                {sug.display_name.split(',')[0]}
-                              </div>
-                              <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">
-                                {sug.display_name}
+                    <div className="bg-safar-card p-4 rounded-2xl border border-white/5 space-y-3 relative">
+                      {/* Pickup Address Input */}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-3 h-3 rounded-full bg-white border-2 border-safar-teal flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={pickupAddress}
+                          onFocus={() => setActiveField('pickup')}
+                          onChange={(e) => handleAddressInputChange(e.target.value, 'pickup')}
+                          placeholder="Enter Pickup Address"
+                          className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="border-b border-white/5" />
+
+                      {/* Destination Address Input */}
+                      <div className="flex items-center space-x-3">
+                        <div className="w-3 h-3 rounded-full bg-safar-teal flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={destAddress}
+                          onFocus={() => setActiveField('dest')}
+                          onChange={(e) => handleAddressInputChange(e.target.value, 'dest')}
+                          placeholder="Enter Destination"
+                          className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Autocomplete Dropdown Suggestions */}
+                      {activeField && suggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-safar-card/95 backdrop-blur-xl border border-safar-teal/30 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-white/5 max-h-56 overflow-y-auto">
+                          {suggestions.map((sug, idx) => (
+                            <div
+                              key={idx}
+                              onClick={() => handleSelectSuggestion(sug)}
+                              className="p-3 hover:bg-safar-teal/10 flex items-start space-x-3 cursor-pointer transition-colors"
+                            >
+                              <MapPin className="w-4 h-4 text-safar-teal mt-0.5 flex-shrink-0" />
+                              <div className="text-xs">
+                                <div className="font-bold text-white leading-tight">
+                                  {sug.display_name.split(',')[0]}
+                                </div>
+                                <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">
+                                  {sug.display_name}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-                  <button
-                    onClick={handleCalculateFare}
-                    disabled={loading}
-                    className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition-all active:scale-98"
-                  >
-                    <Search className="w-5 h-5" />
-                    <span>{loading ? 'Calculating Fares...' : 'Search Rides'}</span>
-                  </button>
-                </div>
+                    <button
+                      onClick={handleCalculateFare}
+                      disabled={loading}
+                      className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition-all active:scale-98"
+                    >
+                      <Search className="w-5 h-5" />
+                      <span>{loading ? 'Calculating Fares...' : 'Search Rides'}</span>
+                    </button>
+                  </div>
+                )
               )}
 
               {step === 'SELECT_VEHICLE' && (
