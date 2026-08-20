@@ -389,7 +389,7 @@ export async function completeRide(req: AuthRequest, res: Response) {
       create: {
         rideId: id,
         riderId: ride.riderId,
-        driverId: ride.driverId,
+        driverId: ride.driverId || ride.riderId,
         amount: finalFare,
         paymentMethod: 'CASH',
         paymentStatus: 'PENDING',
