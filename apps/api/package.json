@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "prisma db push --schema=prisma/schema.sqlite.prisma && tsx watch src/server.ts",
     "dev:sqlite": "prisma db push --schema=prisma/schema.sqlite.prisma && tsx prisma/seed.ts && tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "prisma db push && tsx prisma/seed.ts && node dist/server.js",
+    "build": "npx prisma generate && tsc",
+    "start": "npx prisma db push --accept-data-loss && tsx prisma/seed.ts && node dist/server.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts"
