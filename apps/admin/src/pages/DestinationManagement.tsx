@@ -76,17 +76,27 @@ export const DestinationManagement: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      name: formData.name,
+      address: formData.address,
+      latitude: parseFloat(formData.latitude),
+      longitude: parseFloat(formData.longitude),
+      imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=400&q=80',
+      rating: parseFloat(formData.rating || '4.8'),
+      category: formData.category || 'Popular',
+    };
+
     try {
       if (editingId) {
         await apiFetch(`/api/admin/popular-destinations/${editingId}`, {
           method: 'PUT',
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
         alert('🎉 Popular Destination updated successfully!');
       } else {
         await apiFetch('/api/admin/popular-destinations', {
           method: 'POST',
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
         alert('🎉 Popular Destination created successfully!');
       }
