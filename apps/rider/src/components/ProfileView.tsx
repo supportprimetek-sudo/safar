@@ -63,12 +63,35 @@ export const ProfileView: React.FC = () => {
             <ChevronRight className="w-4 h-4 text-safar-textMuted" />
           </div>
 
-          <div className="p-4 flex items-center justify-between hover:bg-safar-surface transition-colors cursor-pointer">
+          <div 
+            onClick={() => {
+              localStorage.removeItem('safar_intro_seen');
+              window.location.reload();
+            }}
+            className="p-4 flex items-center justify-between hover:bg-safar-surface transition-colors cursor-pointer"
+          >
             <div className="flex items-center space-x-3">
               <Bell className="w-5 h-5 text-purple-400" />
               <div>
                 <div className="text-xs text-safar-textMuted font-bold">Push Notifications</div>
                 <div className="text-sm font-semibold text-white">Trip Updates & Offers Enabled</div>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-safar-textMuted" />
+          </div>
+
+          <div 
+            onClick={() => {
+              localStorage.removeItem('safar_intro_seen');
+              window.location.reload();
+            }}
+            className="p-4 flex items-center justify-between hover:bg-safar-surface transition-colors cursor-pointer"
+          >
+            <div className="flex items-center space-x-3">
+              <User className="w-5 h-5 text-amber-400" />
+              <div>
+                <div className="text-xs text-safar-textMuted font-bold">App Intro & Features</div>
+                <div className="text-sm font-semibold text-white">Replay Onboarding Tour</div>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-safar-textMuted" />
