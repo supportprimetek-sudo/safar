@@ -33,9 +33,6 @@ export const DriverBottomNav: React.FC<DriverBottomNavProps> = ({ activeTab, onS
             >
               <div className="relative">
                 {tab.icon}
-                {isActive && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-safar-teal rounded-full animate-ping" />
-                )}
               </div>
               <span className="text-[11px] mt-1 tracking-tight">{tab.label}</span>
             </button>

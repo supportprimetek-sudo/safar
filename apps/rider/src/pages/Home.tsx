@@ -316,24 +316,26 @@ export const Home: React.FC = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-safar-bg flex flex-col">
-      {/* Top Header Bar */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center">
-        <div className="flex items-center space-x-2 bg-safar-card/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg">
-          <div className="w-8 h-8 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black">
-            S
+      {/* Top Header Bar (Visible on Home Tab Only) */}
+      {activeTab === 'home' && (
+        <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center">
+          <div className="flex items-center space-x-2 bg-safar-card/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg">
+            <div className="w-8 h-8 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black">
+              S
+            </div>
+            <div>
+              <div className="text-sm font-black text-white tracking-wide">SAFAR</div>
+              <div className="text-[10px] text-safar-textMuted font-bold">Rider App</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-black text-white tracking-wide">SAFAR</div>
-            <div className="text-[10px] text-safar-textMuted font-bold">Rider App</div>
-          </div>
-        </div>
 
-        {connectionState === 'POLLING_FALLBACK' && (
-          <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold">
-            Polling Fallback
-          </span>
-        )}
-      </div>
+          {connectionState === 'POLLING_FALLBACK' && (
+            <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold">
+              Polling Fallback
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Main Tab Views */}
       <div className="flex-1 w-full h-full relative z-0">
