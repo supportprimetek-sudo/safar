@@ -85,6 +85,13 @@ app.post('/api/drivers/offline', authenticateToken, driverController.toggleOffli
 app.post('/api/drivers/location', authenticateToken, driverController.updateLocation);
 app.get('/api/drivers/earnings', authenticateToken, driverController.getEarnings);
 
+// --- Popular Destinations Routes (Must be declared before /api/rides/:id parameter route) ---
+app.get('/api/rides/popular-destinations', adminController.getPopularDestinations);
+app.get('/api/admin/popular-destinations', authenticateToken, requireRole('ADMIN'), adminController.getPopularDestinations);
+app.post('/api/admin/popular-destinations', authenticateToken, requireRole('ADMIN'), adminController.createPopularDestination);
+app.put('/api/admin/popular-destinations/:id', authenticateToken, requireRole('ADMIN'), adminController.updatePopularDestination);
+app.delete('/api/admin/popular-destinations/:id', authenticateToken, requireRole('ADMIN'), adminController.deletePopularDestination);
+
 // --- Ride Routes ---
 app.post('/api/rides/estimate-fare', rideController.estimateFare);
 app.post('/api/rides', authenticateToken, rideController.createRide);
@@ -109,13 +116,6 @@ app.get('/api/admin/drivers', authenticateToken, requireRole('ADMIN'), adminCont
 app.get('/api/admin/riders', authenticateToken, requireRole('ADMIN'), adminController.listRiders);
 app.get('/api/admin/rides', authenticateToken, requireRole('ADMIN'), adminController.listAllRides);
 app.put('/api/admin/drivers/:driverId/status', authenticateToken, requireRole('ADMIN'), adminController.updateDriverStatus);
-
-// --- Popular Destinations Routes ---
-app.get('/api/rides/popular-destinations', adminController.getPopularDestinations);
-app.get('/api/admin/popular-destinations', authenticateToken, requireRole('ADMIN'), adminController.getPopularDestinations);
-app.post('/api/admin/popular-destinations', authenticateToken, requireRole('ADMIN'), adminController.createPopularDestination);
-app.put('/api/admin/popular-destinations/:id', authenticateToken, requireRole('ADMIN'), adminController.updatePopularDestination);
-app.delete('/api/admin/popular-destinations/:id', authenticateToken, requireRole('ADMIN'), adminController.deletePopularDestination);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
