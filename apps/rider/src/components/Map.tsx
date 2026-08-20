@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Crosshair, Loader2, MapPin } from 'lucide-react';
 
@@ -73,7 +73,7 @@ function MapController({
   const hasFittedRef = useRef(false);
 
   useEffect(() => {
-    // Only fit bounds initial load or when destination is newly provided, NOT during dragging
+    // Fit bounds initial load when destination is set, NOT during dragging
     if (pickup && destination && !hasFittedRef.current && !isPinningMode) {
       hasFittedRef.current = true;
       const bounds = L.latLngBounds(
@@ -82,7 +82,7 @@ function MapController({
       );
       map.fitBounds(bounds, { padding: [60, 60], animate: true });
     }
-  }, [pickup, destination, isPinningMode, map]);
+  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, isPinningMode, map]);
 
   return null;
 }
@@ -103,21 +103,44 @@ export const MapComponent: React.FC<MapProps> = ({
   const pickupMarkerRef = useRef<L.Marker>(null);
   const destMarkerRef = useRef<L.Marker>(null);
   const [locatingGps, setLocatingGps] = useState(false);
+  const [userGpsCoords, setUserGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [roadRouteCoords, setRoadRouteCoords] = useState<[number, number][]>([]);
 
-  // Effective destination fallback so drop marker is ALWAYS visible and draggable on map
+  // OSRM Road-Following Polyline Engine
+  useEffect(() => {
+    if (!pickup || !destination) {
+      setRoadRouteCoords([]);
+      return;
+    }
+
+    const fetchRoute = async () => {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${pickup.lng},${pickup.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.routes && data.routes[0]?.geometry?.coordinates) {
+          const coords: [number, number][] = data.routes[0].geometry.coordinates.map(
+            (c: [number, number]) => [c[1], c[0]]
+          );
+          setRoadRouteCoords(coords);
+        } else {
+          setRoadRouteCoords([[pickup.lat, pickup.lng], [destination.lat, destination.lng]]);
+        }
+      } catch (err) {
+        console.warn('OSRM road routing error:', err);
+        setRoadRouteCoords([[pickup.lat, pickup.lng], [destination.lat, destination.lng]]);
+      }
+    };
+
+    fetchRoute();
+  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng]);
+
+  // Effective destination fallback so drop marker is ALWAYS visible and draggable anywhere on map
   const effectiveDest =
     destination ||
     (pickup
       ? { lat: pickup.lat + 0.012, lng: pickup.lng + 0.012, address: 'Tap or drag on map to set drop location' }
       : null);
-
-  const polylineCoords =
-    pickup && destination
-      ? [
-          [pickup.lat, pickup.lng],
-          [destination.lat, destination.lng],
-        ]
-      : [];
 
   const pickupEventHandlers = useMemo(
     () => ({
@@ -158,8 +181,9 @@ export const MapComponent: React.FC<MapProps> = ({
         (pos) => {
           const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setLocatingGps(false);
+          setUserGpsCoords(coords);
           if (mapRef.current) {
-            mapRef.current.flyTo([coords.lat, coords.lng], 16, { animate: true, duration: 1.2 });
+            mapRef.current.flyTo([coords.lat, coords.lng], 17, { animate: true, duration: 1.5 });
           }
           if (onRecenterGps) onRecenterGps(coords);
         },
@@ -167,18 +191,20 @@ export const MapComponent: React.FC<MapProps> = ({
           console.warn('GPS location error or permission denied:', err);
           setLocatingGps(false);
           const fallbackCoords = pickup ? { lat: pickup.lat, lng: pickup.lng } : { lat: 28.6139, lng: 77.209 };
+          setUserGpsCoords(fallbackCoords);
           if (mapRef.current) {
-            mapRef.current.flyTo([fallbackCoords.lat, fallbackCoords.lng], 16, { animate: true, duration: 1 });
+            mapRef.current.flyTo([fallbackCoords.lat, fallbackCoords.lng], 17, { animate: true, duration: 1.2 });
           }
           if (onRecenterGps) onRecenterGps(fallbackCoords);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     } else {
       setLocatingGps(false);
       const fallbackCoords = pickup ? { lat: pickup.lat, lng: pickup.lng } : { lat: 28.6139, lng: 77.209 };
+      setUserGpsCoords(fallbackCoords);
       if (mapRef.current) {
-        mapRef.current.flyTo([fallbackCoords.lat, fallbackCoords.lng], 16, { animate: true });
+        mapRef.current.flyTo([fallbackCoords.lat, fallbackCoords.lng], 17, { animate: true });
       }
       if (onRecenterGps) onRecenterGps(fallbackCoords);
     }
@@ -209,7 +235,7 @@ export const MapComponent: React.FC<MapProps> = ({
       <button
         onClick={handleGetCurrentLocation}
         disabled={locatingGps}
-        title="Recenter Map to Device GPS Location"
+        title="Recenter Map to Device GPS Location (Zoom View)"
         className="absolute top-20 right-4 z-20 w-11 h-11 bg-[#202631]/90 backdrop-blur-md border border-white/10 text-[#35D0B0] hover:text-white rounded-2xl flex items-center justify-center shadow-2xl active:scale-95 transition-all group"
       >
         {locatingGps ? (
@@ -239,6 +265,14 @@ export const MapComponent: React.FC<MapProps> = ({
           onMapClick={handleMapClick}
           onCenterChange={onCenterChange}
         />
+
+        {userGpsCoords && (
+          <Circle
+            center={[userGpsCoords.lat, userGpsCoords.lng]}
+            radius={50}
+            pathOptions={{ color: '#35D0B0', fillColor: '#35D0B0', fillOpacity: 0.25, weight: 2 }}
+          />
+        )}
 
         {pickup && (
           <Marker
@@ -282,9 +316,9 @@ export const MapComponent: React.FC<MapProps> = ({
           </Marker>
         )}
 
-        {!isPinningMode && polylineCoords.length > 0 && (
+        {!isPinningMode && roadRouteCoords.length > 0 && (
           <Polyline
-            positions={polylineCoords as [number, number][]}
+            positions={roadRouteCoords}
             pathOptions={{ color: '#35D0B0', weight: 6, opacity: 0.95 }}
           />
         )}

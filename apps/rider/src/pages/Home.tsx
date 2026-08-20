@@ -44,15 +44,30 @@ export const Home: React.FC = () => {
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [upiPayload, setUpiPayload] = useState<string>('');
 
+  const POPULAR_QUICK_DESTINATIONS = [
+    { name: 'Cyber Hub, Gurugram', lat: 28.4950, lon: 77.0890, address: 'Cyber Hub, DLF Phase 2, Gurugram' },
+    { name: 'Connaught Place, New Delhi', lat: 28.6139, lon: 77.2090, address: 'Connaught Place, Rajiv Chowk, New Delhi' },
+    { name: 'India Gate, New Delhi', lat: 28.6129, lon: 77.2295, address: 'India Gate, Rajpath, New Delhi' },
+    { name: 'IGI Airport T3, Delhi', lat: 28.5562, lon: 77.1000, address: 'Indira Gandhi International Airport, Terminal 3, New Delhi' },
+    { name: 'Sector 62, Noida', lat: 28.6280, lon: 77.3649, address: 'Sector 62, Electronic City, Noida' },
+    { name: 'MG Road Metro Station', lat: 28.4797, lon: 77.0802, address: 'MG Road Metro Station, Gurugram' },
+  ];
+
   // 1. Reverse Geocode helper (Coordinates -> Address)
   const reverseGeocode = async (lat: number, lng: number, field: 'pickup' | 'dest') => {
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
       const data = await res.json();
       if (data && data.display_name) {
-        const shortAddress = data.display_name.split(',').slice(0, 3).join(', ');
-        if (field === 'pickup') setPickupAddress(shortAddress);
-        else setDestAddress(shortAddress);
+        const parts = data.display_name.split(', ');
+        const shortAddress = parts.length > 2 ? `${parts[0]}, ${parts[1]}, ${parts[2]}` : data.display_name;
+        if (field === 'pickup') {
+          setPickupAddress(shortAddress);
+        } else {
+          setDestAddress(shortAddress);
+        }
       }
     } catch (err) {
       console.warn('Reverse geocode error:', err);
@@ -66,7 +81,7 @@ export const Home: React.FC = () => {
 
     setActiveField(field);
 
-    if (text.length < 3) {
+    if (text.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -74,7 +89,9 @@ export const Home: React.FC = () => {
     setSearchingAddress(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=5`);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=6&addressdetails=1`
+        );
         const data = await res.json();
         setSuggestions(data || []);
       } catch (err) {
@@ -82,7 +99,7 @@ export const Home: React.FC = () => {
       } finally {
         setSearchingAddress(false);
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timer);
   };
@@ -90,7 +107,8 @@ export const Home: React.FC = () => {
   const handleSelectSuggestion = (sug: { display_name: string; lat: string; lon: string }) => {
     const lat = parseFloat(sug.lat);
     const lng = parseFloat(sug.lon);
-    const shortAddress = sug.display_name.split(',').slice(0, 3).join(', ');
+    const parts = sug.display_name.split(', ');
+    const shortAddress = parts.length > 2 ? `${parts[0]}, ${parts[1]}, ${parts[2]}` : sug.display_name;
 
     if (activeField === 'pickup') {
       setPickupAddress(shortAddress);
