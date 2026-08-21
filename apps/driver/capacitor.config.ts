@@ -12,6 +12,24 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     overScrollMode: 'never',
+    backgroundColor: '#11151D',
+  },
+  plugins: {
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'DARK',
+      backgroundColor: '#11151D',
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'DARK',
+      resizeOnFullScreen: true,
+    },
+    SplashScreen: {
+      launchShowDuration: 1500,
+      backgroundColor: '#11151D',
+      showSpinner: false,
+    },
   },
 };
 

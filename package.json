@@ -28,5 +28,11 @@
     "sharp": "^0.35.3",
     "typescript": "^5.4.5",
     "vite": "^5.2.0"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
   }
 }
