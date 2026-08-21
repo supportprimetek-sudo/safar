@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SAFAR Driver</string>
+    <string name="title_activity_main">SAFAR Driver</string>
+    <string name="package_name">app.safar.driver</string>
+    <string name="custom_url_scheme">app.safar.driver</string>
+</resources>

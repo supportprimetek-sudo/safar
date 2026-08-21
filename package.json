@@ -16,9 +16,14 @@
     "build": "npm run build --workspaces --if-present",
     "start": "npm run start --workspace=apps/api",
     "db:migrate": "npm run db:migrate --workspace=apps/api",
-    "db:seed": "npm run db:seed --workspace=apps/api"
+    "db:seed": "npm run db:seed --workspace=apps/api",
+    "cap:sync": "npm run build && npm run cap:sync:rider && npm run cap:sync:driver && npm run cap:sync:admin",
+    "cap:sync:rider": "npm run build --workspace=apps/rider && cd apps/rider && npx cap sync android",
+    "cap:sync:driver": "npm run build --workspace=apps/driver && cd apps/driver && npx cap sync android",
+    "cap:sync:admin": "npm run build --workspace=apps/admin && cd apps/admin && npx cap sync android"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.0"
