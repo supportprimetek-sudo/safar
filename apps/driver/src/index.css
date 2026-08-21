@@ -10,6 +10,12 @@
   input, textarea {
     user-select: text;
   }
+  html, body, #root {
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
+  }
   body {
     background-color: #11151D;
     color: #FFFFFF;
