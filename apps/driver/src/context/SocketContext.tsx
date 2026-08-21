@@ -15,7 +15,7 @@ const SocketContext = createContext<SocketContextType>({
   emitLocationUpdate: () => {},
 });
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api-production-eff74.up.railway.app';
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -24,17 +24,14 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     const socketClient = io(API_URL, {
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
+      transports: ['polling', 'websocket'],
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
     });
 
     socketClient.on('connect', () => {
       console.log('⚡ Driver Socket Connected');
       setConnectionState('CONNECTED');
-
-      if (user?.driverProfile?.id) {
-        socketClient.emit('register_driver', user.driverProfile.id);
-      }
     });
 
     socketClient.on('disconnect', () => {
@@ -46,7 +43,15 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => {
       socketClient.disconnect();
     };
-  }, [user?.driverProfile?.id]);
+  }, []);
+
+  // Guarantee driver registration whenever socket connects or user profile loads
+  useEffect(() => {
+    if (socket && user?.driverProfile?.id) {
+      socket.emit('register_driver', user.driverProfile.id);
+      console.log('⚡ Driver Registered on Socket:', user.driverProfile.id);
+    }
+  }, [socket, user?.driverProfile?.id]);
 
   const emitLocationUpdate = (latitude: number, longitude: number, rideId?: string) => {
     if (!socket || !user?.driverProfile?.id) return;

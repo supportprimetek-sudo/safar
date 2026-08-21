@@ -14,7 +14,7 @@ const SocketContext = createContext<SocketContextType>({
   connectionState: 'POLLING_FALLBACK',
 });
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api-production-eff74.up.railway.app';
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
