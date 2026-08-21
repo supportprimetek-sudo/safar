@@ -14,10 +14,11 @@ function initializeSocketService(io) {
             socket.join(`user:${userId}`);
             console.log(`👤 User ${userId} joined room user:${userId}`);
         });
-        // Join driver specific room
+        // Join driver specific room & online drivers broadcast room
         socket.on('register_driver', (driverId) => {
             socket.join(`driver:${driverId}`);
-            console.log(`🚕 Driver ${driverId} joined room driver:${driverId}`);
+            socket.join('online_drivers');
+            console.log(`🚕 Driver ${driverId} joined room driver:${driverId} and online_drivers`);
         });
         // Join ride room
         socket.on(shared_1.SOCKET_EVENTS.JOIN_RIDE_ROOM, (rideId) => {

@@ -88,13 +88,10 @@ async function createRide(req, res) {
                 vehicleType: true,
             },
         });
-        // Find nearby eligible online drivers
+        // Find all online drivers
         const onlineDrivers = await prisma_1.prisma.driverProfile.findMany({
             where: {
                 onlineStatus: 'ONLINE',
-                driverStatus: 'APPROVED',
-                kycStatus: 'APPROVED',
-                vehicleTypeId,
             },
             include: {
                 user: { select: { id: true, fullName: true, phone: true } },
@@ -110,21 +107,28 @@ async function createRide(req, res) {
             return { ...d, distanceToPickup: dist };
         })
             .sort((a, b) => a.distanceToPickup - b.distanceToPickup);
-        // Notify top eligible drivers via socket
+        // Notify online drivers via socket
         try {
             const io = (0, socket_service_1.getIO)();
+            const payload = {
+                rideId: ride.id,
+                pickupAddress: ride.pickupAddress,
+                destinationAddress: ride.destinationAddress,
+                distanceKm: ride.distanceKm,
+                estimatedFare: ride.estimatedFare,
+                riderName: ride.rider.fullName,
+                riderPhone: ride.rider.phone,
+                vehicleName: ride.vehicleType.name,
+                etaToPickupMinutes: 3,
+                timeoutSeconds: 30,
+            };
+            // Broadcast to general online_drivers room
+            io.to('online_drivers').emit(shared_1.SOCKET_EVENTS.RIDE_REQUEST_RECEIVED, payload);
+            // Emit to targeted driver rooms
             for (const driver of eligibleDrivers) {
                 io.to(`driver:${driver.id}`).emit(shared_1.SOCKET_EVENTS.RIDE_REQUEST_RECEIVED, {
-                    rideId: ride.id,
-                    pickupAddress: ride.pickupAddress,
-                    destinationAddress: ride.destinationAddress,
-                    distanceKm: ride.distanceKm,
-                    estimatedFare: ride.estimatedFare,
-                    riderName: ride.rider.fullName,
-                    riderPhone: ride.rider.phone,
-                    vehicleName: ride.vehicleType.name,
+                    ...payload,
                     etaToPickupMinutes: Math.max(1, Math.round(driver.distanceToPickup * 2)),
-                    timeoutSeconds: 15,
                 });
             }
         }

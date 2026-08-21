@@ -16,10 +16,11 @@ export function initializeSocketService(io: SocketIOServer) {
       console.log(`👤 User ${userId} joined room user:${userId}`);
     });
 
-    // Join driver specific room
+    // Join driver specific room & online drivers broadcast room
     socket.on('register_driver', (driverId: string) => {
       socket.join(`driver:${driverId}`);
-      console.log(`🚕 Driver ${driverId} joined room driver:${driverId}`);
+      socket.join('online_drivers');
+      console.log(`🚕 Driver ${driverId} joined room driver:${driverId} and online_drivers`);
     });
 
     // Join ride room
