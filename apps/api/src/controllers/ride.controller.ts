@@ -173,6 +173,48 @@ export async function createRide(req: AuthRequest, res: Response) {
   }
 }
 
+export async function getActiveRideRequestForDriver(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user || req.user.role !== 'DRIVER') {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    const activeRide = await prisma.ride.findFirst({
+      where: {
+        rideStatus: 'SEARCHING_DRIVER',
+        requestedAt: { gte: twoMinutesAgo },
+      },
+      include: {
+        rider: { select: { fullName: true, phone: true } },
+        vehicleType: true,
+      },
+      orderBy: { requestedAt: 'desc' },
+    });
+
+    if (!activeRide) {
+      return res.json({ success: true, data: null });
+    }
+
+    const payload = {
+      rideId: activeRide.id,
+      pickupAddress: activeRide.pickupAddress,
+      destinationAddress: activeRide.destinationAddress,
+      distanceKm: activeRide.distanceKm,
+      estimatedFare: activeRide.estimatedFare,
+      riderName: activeRide.rider.fullName,
+      riderPhone: activeRide.rider.phone,
+      vehicleName: activeRide.vehicleType.name,
+      etaToPickupMinutes: 3,
+      timeoutSeconds: 30,
+    };
+
+    return res.json({ success: true, data: payload });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
 export async function getRideDetails(req: AuthRequest, res: Response) {
   try {
     const { id } = req.params;

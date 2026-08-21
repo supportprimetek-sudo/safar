@@ -76,6 +76,27 @@ export const Dashboard: React.FC = () => {
     };
   }, [socket]);
 
+  // Continuous HTTP Polling Fallback for Mobile APK (Guarantees 100% Ride Request Delivery)
+  useEffect(() => {
+    if (!isOnline || incomingRequest) return;
+
+    const fetchActiveRequest = async () => {
+      try {
+        const res = await apiFetch('/api/rides/driver/active-request');
+        if (res.success && res.data) {
+          console.log('⚡ Driver Polling: Active Ride Request Received', res.data);
+          setIncomingRequest(res.data);
+          setActiveTab('dashboard');
+        }
+      } catch (err) {}
+    };
+
+    fetchActiveRequest();
+    const interval = setInterval(fetchActiveRequest, 3000);
+
+    return () => clearInterval(interval);
+  }, [isOnline, incomingRequest]);
+
   // Online / Offline Toggle
   const handleToggleOnline = async () => {
     try {

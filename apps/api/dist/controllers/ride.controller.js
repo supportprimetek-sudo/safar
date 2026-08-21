@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.estimateFare = estimateFare;
 exports.createRide = createRide;
+exports.getActiveRideRequestForDriver = getActiveRideRequestForDriver;
 exports.getRideDetails = getRideDetails;
 exports.getRideStatusFallback = getRideStatusFallback;
 exports.acceptRide = acceptRide;
@@ -140,6 +141,44 @@ async function createRide(req, res) {
             message: 'Ride request created. Searching for nearby drivers.',
             data: ride,
         });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function getActiveRideRequestForDriver(req, res) {
+    try {
+        if (!req.user || req.user.role !== 'DRIVER') {
+            return res.status(403).json({ success: false, message: 'Unauthorized' });
+        }
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+        const activeRide = await prisma_1.prisma.ride.findFirst({
+            where: {
+                rideStatus: 'SEARCHING_DRIVER',
+                requestedAt: { gte: twoMinutesAgo },
+            },
+            include: {
+                rider: { select: { fullName: true, phone: true } },
+                vehicleType: true,
+            },
+            orderBy: { requestedAt: 'desc' },
+        });
+        if (!activeRide) {
+            return res.json({ success: true, data: null });
+        }
+        const payload = {
+            rideId: activeRide.id,
+            pickupAddress: activeRide.pickupAddress,
+            destinationAddress: activeRide.destinationAddress,
+            distanceKm: activeRide.distanceKm,
+            estimatedFare: activeRide.estimatedFare,
+            riderName: activeRide.rider.fullName,
+            riderPhone: activeRide.rider.phone,
+            vehicleName: activeRide.vehicleType.name,
+            etaToPickupMinutes: 3,
+            timeoutSeconds: 30,
+        };
+        return res.json({ success: true, data: payload });
     }
     catch (err) {
         return res.status(500).json({ success: false, message: err.message });

@@ -97,6 +97,7 @@ app.post('/api/rides/estimate-fare', rideController.estimateFare);
 app.post('/api/rides', authenticateToken, rideController.createRide);
 app.get('/api/rides/rider/history', authenticateToken, rideController.getRiderHistory);
 app.get('/api/rides/driver/history', authenticateToken, rideController.getDriverHistory);
+app.get('/api/rides/driver/active-request', authenticateToken, rideController.getActiveRideRequestForDriver);
 app.get('/api/rides/:id', authenticateToken, rideController.getRideDetails);
 app.get('/api/rides/:id/status', rideController.getRideStatusFallback); // Public fallback for polling
 app.post('/api/rides/:id/accept', authenticateToken, rideController.acceptRide);
