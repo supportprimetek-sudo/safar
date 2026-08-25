@@ -71,6 +71,7 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <SocketProvider>
+        <div className="saf-status-bar-shield" />
         <AppContent />
       </SocketProvider>
     </AuthProvider>

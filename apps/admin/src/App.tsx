@@ -52,6 +52,7 @@ export const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
+      <div className="saf-status-bar-shield" />
       <AuthProvider>
         <BrowserRouter>
           <Routes>

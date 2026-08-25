@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hard stop header shield for status bar area */
+.saf-status-bar-shield {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: max(2.5rem, env(safe-area-inset-top, 32px)) !important;
+  background-color: #11151D !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+}
+
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent !important;
