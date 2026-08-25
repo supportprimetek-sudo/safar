@@ -167,13 +167,9 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <button
-            onClick={logout}
-            className="w-10 h-10 rounded-2xl bg-safar-surface border border-white/10 flex items-center justify-center text-red-400 hover:bg-safar-card active:scale-95 transition-all"
-            title="Log Out"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
+          <div className={`px-3 py-1.5 rounded-full text-xs font-extrabold border ${isOnline ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+            {isOnline ? '🟢 Online' : '⚪ Offline'}
+          </div>
         </div>
       </div>
 
