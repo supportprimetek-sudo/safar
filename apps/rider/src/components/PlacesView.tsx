@@ -38,8 +38,8 @@ export const PlacesView: React.FC<PlacesViewProps> = ({ onSelectPlace }) => {
 
   return (
     <div className="h-full w-full bg-safar-bg p-4 pt-2 pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5 animate-fade-in rapido-scroll-container">
-      {/* Sticky Frozen Header */}
-      <div className="sticky top-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-2 bg-[#11151D]/95 backdrop-blur-xl border-b border-white/10 -mx-4 px-4 mb-2">
+      {/* Sticky Frozen Opaque Header */}
+      <div className="sticky top-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-2 bg-[#11151D] border-b border-white/10 -mx-4 px-4 mb-2">
         <div className="bg-safar-card p-4 rounded-3xl border border-white/10 shadow-lg flex items-center justify-between">
           <div>
             <div className="flex items-center space-x-1.5 text-xs text-safar-teal font-extrabold uppercase tracking-wider mb-0.5">

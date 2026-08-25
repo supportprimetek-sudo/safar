@@ -39,8 +39,8 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-8 space-y-6 pt-2">
-      {/* Sticky Frozen Title Header */}
-      <div className="sticky top-0 z-30 pt-[max(2rem,env(safe-area-inset-top,28px))] pb-3 bg-[#11151D]/95 backdrop-blur-xl border-b border-white/10 -mx-4 px-4 sm:-mx-8 sm:px-8 mb-4">
+      {/* Sticky Frozen Opaque Title Header */}
+      <div className="sticky top-0 z-30 pt-[max(2rem,env(safe-area-inset-top,28px))] pb-3 bg-[#11151D] border-b border-white/10 -mx-4 px-4 sm:-mx-8 sm:px-8 mb-4">
         <h1 className="text-2xl sm:text-3xl font-black text-white">Executive Control Dashboard</h1>
         <p className="text-xs sm:text-sm text-safar-textMuted mt-0.5">Real-time platform KPIs & fleet activity.</p>
       </div>

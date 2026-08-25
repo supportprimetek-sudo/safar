@@ -374,7 +374,7 @@ export const Home: React.FC = () => {
     <div className="relative h-screen w-screen overflow-hidden bg-safar-bg flex flex-col">
       {/* Top Frozen Header Bar (Visible on Home Tab Only) */}
       {activeTab === 'home' && (
-        <div className="fixed top-0 left-0 right-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-3 px-4 flex justify-between items-center bg-gradient-to-b from-[#11151D] via-[#11151D]/80 to-transparent pointer-events-none">
+        <div className="fixed top-0 left-0 right-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-3 px-4 flex justify-between items-center bg-gradient-to-b from-[#11151D] via-[#11151D] to-transparent pointer-events-none">
           <div className="flex items-center space-x-2 bg-safar-card/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg pointer-events-auto">
             <div className="w-8 h-8 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black">
               S
