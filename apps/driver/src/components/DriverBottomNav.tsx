@@ -17,7 +17,7 @@ export const DriverBottomNav: React.FC<DriverBottomNavProps> = ({ activeTab, onS
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-safar-card/95 backdrop-blur-xl border-t border-white/10 px-3 py-2 pb-5 max-w-lg mx-auto shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-safar-card/95 backdrop-blur-xl border-t border-white/10 px-3 pt-2.5 pb-[max(1.75rem,env(safe-area-inset-bottom,24px))] max-w-lg mx-auto shadow-2xl">
       <div className="flex justify-around items-center">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;

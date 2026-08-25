@@ -35,8 +35,8 @@ export const RideRequestModal: React.FC<RideRequestModalProps> = ({ request, onA
   }, [timeLeft, request.rideId, onReject]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4">
-      <div className="bg-safar-card border-2 border-safar-teal w-full max-w-md rounded-3xl p-6 shadow-[0_0_50px_rgba(53,208,176,0.4)] space-y-5 animate-pulse-border">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4 pb-[max(2.5rem,env(safe-area-inset-bottom,36px))] overflow-y-auto">
+      <div className="bg-safar-card border-2 border-safar-teal w-full max-w-md rounded-3xl p-6 mb-2 shadow-[0_0_50px_rgba(53,208,176,0.4)] space-y-5 animate-pulse-border">
         {/* Header & Countdown Badge */}
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">

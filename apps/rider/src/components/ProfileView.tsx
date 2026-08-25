@@ -6,7 +6,7 @@ export const ProfileView: React.FC = () => {
   const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-safar-bg p-4 pb-24 max-w-lg mx-auto space-y-5">
+    <div className="min-h-screen bg-safar-bg p-4 pt-[max(2.75rem,env(safe-area-inset-top,36px))] pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5">
       {/* User Header */}
       <div className="bg-safar-card p-5 rounded-3xl border border-white/10 shadow-lg flex items-center space-x-4">
         <div className="w-16 h-16 rounded-2xl bg-safar-teal text-safar-bg font-black text-2xl flex items-center justify-center shadow-lg">

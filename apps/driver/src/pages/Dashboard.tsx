@@ -132,7 +132,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-safar-bg pb-28 max-w-lg mx-auto px-3 sm:px-4">
+    <div className="min-h-screen bg-safar-bg pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto px-3 sm:px-4">
       {activeTab === 'dashboard' && (
         <div className="p-4 space-y-5">
           {/* Header */}

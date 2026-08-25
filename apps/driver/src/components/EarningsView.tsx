@@ -30,7 +30,7 @@ export const EarningsView: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-safar-bg p-4 pb-24 max-w-lg mx-auto space-y-5">
+    <div className="min-h-screen bg-safar-bg p-4 pt-[max(2.75rem,env(safe-area-inset-top,36px))] pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5">
       {/* Total Earnings Hero Card */}
       <div className="bg-gradient-to-br from-safar-card to-safar-surface p-6 rounded-3xl border border-safar-teal/30 shadow-2xl relative overflow-hidden space-y-3">
         <div className="absolute top-0 right-0 w-32 h-32 bg-safar-teal/10 rounded-full blur-3xl pointer-events-none" />
