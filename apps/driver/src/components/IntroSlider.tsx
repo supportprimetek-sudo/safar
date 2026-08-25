@@ -66,9 +66,9 @@ export const IntroSlider: React.FC<IntroSliderProps> = ({ onFinish }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#11151D] flex flex-col justify-between p-5 max-w-lg mx-auto animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-[#11151D] flex flex-col justify-between p-5 pt-[max(2.5rem,env(safe-area-inset-top,36px))] pb-[max(2.25rem,env(safe-area-inset-bottom,28px))] max-w-lg mx-auto animate-fade-in">
       {/* Top Header */}
-      <div className="flex justify-between items-center pt-4 relative z-10">
+      <div className="flex justify-between items-center pt-2 relative z-10">
         <div className="flex items-center space-x-2 bg-[#202631] px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-bold text-[#35D0B0]">
           <Car className="w-4 h-4" />
           <span>SAFAR Driver Partner</span>
@@ -83,9 +83,9 @@ export const IntroSlider: React.FC<IntroSliderProps> = ({ onFinish }) => {
       </div>
 
       {/* Center Image & Card Carousel */}
-      <div className="my-auto space-y-6 relative z-10 pt-4">
+      <div className="my-auto space-y-5 relative z-10 py-2">
         {/* Main Slide Image Container */}
-        <div className="relative h-72 w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-[#151A23]">
+        <div className="relative h-64 sm:h-72 w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-[#151A23]">
           <img
             src={currentSlide.imageUrl}
             alt={currentSlide.title}
@@ -100,15 +100,15 @@ export const IntroSlider: React.FC<IntroSliderProps> = ({ onFinish }) => {
         </div>
 
         {/* Slide Content Card */}
-        <div className="bg-[#202631] p-6 rounded-3xl border border-white/10 shadow-2xl space-y-2 text-center">
-          <h2 className="text-2xl font-black text-white">{currentSlide.title}</h2>
+        <div className="bg-[#202631] p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl space-y-2 text-center">
+          <h2 className="text-xl sm:text-2xl font-black text-white">{currentSlide.title}</h2>
           <p className="text-xs font-extrabold text-[#35D0B0] uppercase tracking-wider">{currentSlide.subtitle}</p>
           <p className="text-xs text-[#A8AFBA] leading-relaxed pt-1">{currentSlide.description}</p>
         </div>
       </div>
 
       {/* Bottom Controls & Indicators */}
-      <div className="space-y-6 pb-6 relative z-10">
+      <div className="space-y-4 pb-2 relative z-10">
         {/* Dot Indicators */}
         <div className="flex justify-center items-center space-x-2">
           {slides.map((_, index) => (

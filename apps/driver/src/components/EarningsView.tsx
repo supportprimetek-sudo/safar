@@ -30,32 +30,34 @@ export const EarningsView: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-safar-bg p-4 pt-[max(2.75rem,env(safe-area-inset-top,36px))] pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5">
-      {/* Total Earnings Hero Card */}
-      <div className="bg-gradient-to-br from-safar-card to-safar-surface p-6 rounded-3xl border border-safar-teal/30 shadow-2xl relative overflow-hidden space-y-3">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-safar-teal/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex justify-between items-center text-safar-textMuted text-xs font-bold uppercase tracking-wider">
-          <span>Total Weekly Earnings</span>
-          <span className="flex items-center text-safar-teal bg-safar-teal/20 px-2 py-0.5 rounded-full font-extrabold text-[10px]">
-            <TrendingUp className="w-3 h-3 mr-1" />
-            {earnings.weeklyGrowth || '+18.4%'}
-          </span>
-        </div>
-        <div className="text-4xl font-black text-white">₹{earnings.totalEarnings}</div>
-
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10 text-xs">
-          <div className="flex items-center space-x-2">
-            <Banknote className="w-4 h-4 text-emerald-400" />
-            <div>
-              <div className="text-safar-textMuted text-[10px] font-bold">Cash Earnings</div>
-              <div className="font-extrabold text-white">₹{earnings.cashEarnings}</div>
-            </div>
+    <div className="min-h-screen bg-safar-bg p-4 pt-2 pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5">
+      {/* Sticky Frozen Top Header Card */}
+      <div className="sticky top-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-2 bg-[#11151D]/95 backdrop-blur-xl border-b border-white/10 -mx-4 px-4 mb-2">
+        <div className="bg-gradient-to-br from-safar-card to-safar-surface p-5 rounded-3xl border border-safar-teal/30 shadow-2xl relative overflow-hidden space-y-2">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-safar-teal/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex justify-between items-center text-safar-textMuted text-xs font-bold uppercase tracking-wider">
+            <span>Total Weekly Earnings</span>
+            <span className="flex items-center text-safar-teal bg-safar-teal/20 px-2 py-0.5 rounded-full font-extrabold text-[10px]">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              {earnings.weeklyGrowth || '+18.4%'}
+            </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <QrCode className="w-4 h-4 text-safar-teal" />
-            <div>
-              <div className="text-safar-textMuted text-[10px] font-bold">Online / QR Code</div>
-              <div className="font-extrabold text-white">₹{earnings.qrEarnings}</div>
+          <div className="text-3xl font-black text-white">₹{earnings.totalEarnings}</div>
+
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10 text-xs">
+            <div className="flex items-center space-x-2">
+              <Banknote className="w-4 h-4 text-emerald-400" />
+              <div>
+                <div className="text-safar-textMuted text-[10px] font-bold">Cash Earnings</div>
+                <div className="font-extrabold text-white">₹{earnings.cashEarnings}</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <QrCode className="w-4 h-4 text-safar-teal" />
+              <div>
+                <div className="text-safar-textMuted text-[10px] font-bold">Online / QR Code</div>
+                <div className="font-extrabold text-white">₹{earnings.qrEarnings}</div>
+              </div>
             </div>
           </div>
         </div>

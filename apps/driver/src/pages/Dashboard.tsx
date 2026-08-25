@@ -132,28 +132,32 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-safar-bg pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto px-3 sm:px-4">
-      {activeTab === 'dashboard' && (
-        <div className="p-4 space-y-5">
-          {/* Header */}
-          <div className="flex justify-between items-center bg-safar-card p-4 rounded-3xl border border-white/10 shadow-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center font-black text-xl">
-                {user?.fullName?.charAt(0) || 'D'}
-              </div>
-              <div>
-                <h2 className="font-extrabold text-white text-base">{user?.fullName}</h2>
-                <p className="text-xs text-safar-textMuted">{driver?.vehicleType?.name || 'Driver Partner'}</p>
-              </div>
+    <div className="min-h-screen bg-safar-bg pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto px-3 sm:px-4">
+      {/* Sticky Frozen Top Header */}
+      <div className="sticky top-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-3 bg-[#11151D]/95 backdrop-blur-xl border-b border-white/10 -mx-3 px-3 sm:-mx-4 sm:px-4 mb-4">
+        <div className="flex justify-between items-center bg-safar-card p-3.5 rounded-3xl border border-white/10 shadow-lg">
+          <div className="flex items-center space-x-3">
+            <div className="w-11 h-11 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center font-black text-xl">
+              {user?.fullName?.charAt(0) || 'D'}
             </div>
-
-            <button
-              onClick={logout}
-              className="w-10 h-10 rounded-2xl bg-safar-surface border border-white/10 flex items-center justify-center text-red-400 hover:bg-safar-card"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            <div>
+              <h2 className="font-extrabold text-white text-base leading-tight">{user?.fullName}</h2>
+              <p className="text-xs text-safar-textMuted">{driver?.vehicleType?.name || 'Driver Partner'}</p>
+            </div>
           </div>
+
+          <button
+            onClick={logout}
+            className="w-10 h-10 rounded-2xl bg-safar-surface border border-white/10 flex items-center justify-center text-red-400 hover:bg-safar-card active:scale-95 transition-all"
+            title="Log Out"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'dashboard' && (
+        <div className="space-y-5">
 
           {/* Online / Offline Switch Container */}
           {isKycApproved ? (

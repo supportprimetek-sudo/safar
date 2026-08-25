@@ -372,10 +372,10 @@ export const Home: React.FC = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-safar-bg flex flex-col">
-      {/* Top Header Bar (Visible on Home Tab Only) */}
+      {/* Top Frozen Header Bar (Visible on Home Tab Only) */}
       {activeTab === 'home' && (
-        <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center">
-          <div className="flex items-center space-x-2 bg-safar-card/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-3 px-4 flex justify-between items-center bg-gradient-to-b from-[#11151D] via-[#11151D]/80 to-transparent pointer-events-none">
+          <div className="flex items-center space-x-2 bg-safar-card/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg pointer-events-auto">
             <div className="w-8 h-8 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black">
               S
             </div>
@@ -386,7 +386,7 @@ export const Home: React.FC = () => {
           </div>
 
           {connectionState === 'POLLING_FALLBACK' && (
-            <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold">
+            <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold pointer-events-auto">
               Polling Fallback
             </span>
           )}

@@ -24,16 +24,18 @@ export const History: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-safar-bg p-4 max-w-lg mx-auto space-y-4">
-      {/* Header */}
-      <div className="flex items-center space-x-3 py-2">
-        <button
-          onClick={() => navigate('/')}
-          className="w-10 h-10 rounded-2xl bg-safar-card border border-white/10 flex items-center justify-center text-white"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h2 className="text-xl font-black text-white">Your SAFAR Ride History</h2>
+    <div className="min-h-screen bg-safar-bg p-4 pt-2 pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-4">
+      {/* Sticky Frozen Header */}
+      <div className="sticky top-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-2 bg-[#11151D]/95 backdrop-blur-xl border-b border-white/10 -mx-4 px-4 mb-2">
+        <div className="flex items-center space-x-3 py-1">
+          <button
+            onClick={() => navigate('/')}
+            className="w-10 h-10 rounded-2xl bg-safar-card border border-white/10 flex items-center justify-center text-white active:scale-95 transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-lg font-black text-white">Your SAFAR Ride History</h2>
+        </div>
       </div>
 
       {loading ? (
