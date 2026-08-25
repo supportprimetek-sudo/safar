@@ -394,10 +394,11 @@ export const Home: React.FC = () => {
       )}
 
       {/* Main Tab Views */}
-      <div className="flex-1 w-full h-full relative z-0">
+      <div className="flex-1 w-full h-full relative z-0 overflow-hidden">
         {activeTab === 'home' && (
-          <div className="w-full h-full relative flex flex-col justify-end">
-            <div className="flex-1 w-full h-full relative z-0">
+          <div className="w-full h-full relative">
+            {/* Fullscreen Fixed Map Layer */}
+            <div className="fixed inset-0 z-0 w-full h-full">
               <MapComponent
                 pickup={pickupCoords ? { ...pickupCoords, address: pickupAddress } : null}
                 destination={destCoords ? { ...destCoords, address: destAddress } : null}
@@ -410,8 +411,8 @@ export const Home: React.FC = () => {
               />
             </div>
 
-            {/* Bottom Booking Sheets */}
-            <div className="relative z-10 w-full max-w-lg mx-auto pb-24 px-3 sm:px-4">
+            {/* Rapido Floating Bottom Booking Sheets */}
+            <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-lg mx-auto pb-[max(5.5rem,env(safe-area-inset-bottom,28px))] px-3 sm:px-4 rapido-scroll-container max-h-[80vh]">
               {step === 'SEARCH_LOCATION' && (
                 isPinningMode ? (
                   <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">

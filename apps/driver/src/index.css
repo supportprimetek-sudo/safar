@@ -23,30 +23,46 @@
     -webkit-user-select: text !important;
   }
 
+  /* Rapido / Uber Native Android Fixed Screen Architecture */
   html, body, #root {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
     overscroll-behavior: none !important;
+    overscroll-behavior-x: none !important;
     overscroll-behavior-y: none !important;
-    -webkit-overflow-scrolling: touch !important;
-    touch-action: pan-x pan-y !important;
-    -webkit-text-size-adjust: 100% !important;
-    height: 100%;
-    width: 100%;
-    overflow-x: hidden;
+    touch-action: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   body {
     background-color: #11151D;
     color: #FFFFFF;
     font-family: 'Plus Jakarta Sans', sans-serif;
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
 }
 
+/* Rapido Scroll Container - Only sheet content scrolls, window stays 100% frozen */
+.rapido-scroll-container {
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+}
+
 .leaflet-container {
-  background: #E5E7EB !important;
+  background: #11151D !important;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: pan-x pan-y pinch-zoom !important;
 }
 
 .leaflet-tile-pane {
