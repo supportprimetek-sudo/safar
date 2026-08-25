@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -38,6 +39,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 export const App: React.FC = () => {
+  useEffect(() => {
+    const initStatusBar = async () => {
+      try {
+        await StatusBar.setStyle({ style: Style.Light });
+        await StatusBar.setBackgroundColor({ color: '#11151D' });
+        await StatusBar.setOverlaysWebView({ overlay: false });
+      } catch (err) {}
+    };
+    initStatusBar();
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>

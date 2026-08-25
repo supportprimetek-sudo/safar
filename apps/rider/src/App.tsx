@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { SplashScreen } from './components/SplashScreen';
@@ -19,6 +20,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 export const AppContent: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [showIntro, setShowIntro] = useState(() => !localStorage.getItem('safar_intro_seen'));
+
+  useEffect(() => {
+    const initStatusBar = async () => {
+      try {
+        await StatusBar.setStyle({ style: Style.Light });
+        await StatusBar.setBackgroundColor({ color: '#11151D' });
+        await StatusBar.setOverlaysWebView({ overlay: false });
+      } catch (err) {}
+    };
+    initStatusBar();
+  }, []);
 
   if (showSplash) {
     return <SplashScreen onFinish={() => setShowSplash(false)} />;
