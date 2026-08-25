@@ -9,6 +9,13 @@ import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('dragstart', (e) => e.preventDefault());
 
+// Override default window.alert to prevent white Capacitor native popups
+if (typeof window !== 'undefined') {
+  window.alert = (msg?: any) => {
+    console.log('SAFAR Intercepted window.alert:', msg);
+  };
+}
+
 // Initialize Native Capacitor Device Plugins
 if ((window as any).Capacitor) {
   StatusBar.setStyle({ style: Style.Dark }).catch(() => {});

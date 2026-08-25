@@ -177,6 +177,8 @@ export const Home: React.FC = () => {
     reverseGeocode(coords.lat, coords.lng, 'pickup');
   };
 
+  const [notification, setNotification] = useState<{ title: string; message: string; icon?: string; onOk?: () => void } | null>(null);
+
   const [isPinningMode, setIsPinningMode] = useState(false);
 
   const handleDestMarkerDrag = (coords: { lat: number; lng: number }) => {
@@ -218,7 +220,7 @@ export const Home: React.FC = () => {
       }
       setStep('SELECT_VEHICLE');
     } catch (err: any) {
-      alert(err.message || 'Failed to estimate fare');
+      setNotification({ title: 'Notice', message: err.message || 'Failed to estimate fare' });
     } finally {
       setLoading(false);
     }
@@ -250,7 +252,7 @@ export const Home: React.FC = () => {
         socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, ride.id);
       }
     } catch (err: any) {
-      alert(err.message || 'Failed to request ride');
+      setNotification({ title: 'Notice', message: err.message || 'Failed to request ride' });
     } finally {
       setLoading(false);
     }
@@ -297,8 +299,12 @@ export const Home: React.FC = () => {
     };
 
     const onPaymentConfirmed = () => {
-      alert('🎉 Payment Confirmed! Thank you for riding with SAFAR.');
-      resetBooking();
+      setNotification({
+        title: 'Payment Confirmed',
+        message: '🎉 Payment Confirmed! Thank you for riding with SAFAR.',
+        icon: '🎉',
+        onOk: resetBooking,
+      });
     };
 
     socket.on(SOCKET_EVENTS.RIDE_ACCEPTED, onRideAccepted);
@@ -363,10 +369,14 @@ export const Home: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({ paymentMethod: 'CASH' }),
       });
-      alert('🎉 Cash Payment Confirmed! Safe travels with SAFAR.');
-      resetBooking();
+      setNotification({
+        title: 'Payment Confirmed',
+        message: '🎉 Cash Payment Confirmed! Safe travels with SAFAR.',
+        icon: '🎉',
+        onOk: resetBooking,
+      });
     } catch (err: any) {
-      alert(err.message || 'Payment confirmation failed');
+      setNotification({ title: 'Notice', message: err.message || 'Payment confirmation failed' });
     } finally {
       setLoading(false);
     }
@@ -379,8 +389,11 @@ export const Home: React.FC = () => {
         method: 'POST',
         body: JSON.stringify({ reason: 'Cancelled by rider' }),
       });
-      alert('Ride cancelled');
-      resetBooking();
+      setNotification({
+        title: 'Ride Cancelled',
+        message: 'Your ride request has been cancelled.',
+        onOk: resetBooking,
+      });
     } catch (e) {}
   };
 
@@ -676,6 +689,31 @@ export const Home: React.FC = () => {
                 </div>
               )
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Dark Styled Custom Notification Modal */}
+      {notification && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#1E2530] border border-safar-teal/40 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-scale-up">
+            <div className="w-16 h-16 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center mx-auto text-3xl font-black border border-safar-teal/30 shadow-lg">
+              {notification.icon || '✓'}
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-white">{notification.title}</h3>
+              <p className="text-sm text-safar-textMuted font-bold mt-1 leading-relaxed">{notification.message}</p>
+            </div>
+            <button
+              onClick={() => {
+                const action = notification.onOk;
+                setNotification(null);
+                if (action) action();
+              }}
+              className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold text-base rounded-2xl shadow-xl transition-all active:scale-95"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
