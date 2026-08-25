@@ -47,16 +47,37 @@ export const Dashboard: React.FC = () => {
     loadData();
   }, []);
 
-  // Continuous GPS Heartbeat when Online
+  // Continuous Real Device GPS Heartbeat & Auto-Location when Online
   useEffect(() => {
     if (!isOnline) return;
-    const interval = setInterval(() => {
-      const lat = (driver?.currentLatitude || 28.6139) + (Math.random() - 0.5) * 0.001;
-      const lng = (driver?.currentLongitude || 77.2090) + (Math.random() - 0.5) * 0.001;
-      emitLocationUpdate(lat, lng, activeRide?.id);
-    }, 5000);
 
-    return () => clearInterval(interval);
+    let watchId: number | null = null;
+    if ('geolocation' in navigator) {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          emitLocationUpdate(lat, lng, activeRide?.id);
+        },
+        (err) => {
+          console.warn('Driver device GPS watch notice:', err);
+          const fallbackLat = driver?.currentLatitude || 28.6139;
+          const fallbackLng = driver?.currentLongitude || 77.2090;
+          emitLocationUpdate(fallbackLat, fallbackLng, activeRide?.id);
+        },
+        { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+      );
+    } else {
+      const fallbackLat = driver?.currentLatitude || 28.6139;
+      const fallbackLng = driver?.currentLongitude || 77.2090;
+      emitLocationUpdate(fallbackLat, fallbackLng, activeRide?.id);
+    }
+
+    return () => {
+      if (watchId !== null && 'geolocation' in navigator) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, [isOnline, driver?.currentLatitude, driver?.currentLongitude, activeRide?.id]);
 
   // Socket Listeners for Ride Requests

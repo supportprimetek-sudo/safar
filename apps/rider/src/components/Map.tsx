@@ -71,16 +71,25 @@ function MapController({
   });
 
   const hasFittedRef = useRef(false);
+  const lastPickupKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Fit bounds initial load when destination is set, NOT during dragging
-    if (pickup && destination && !hasFittedRef.current && !isPinningMode) {
-      hasFittedRef.current = true;
-      const bounds = L.latLngBounds(
-        [pickup.lat, pickup.lng],
-        [destination.lat, destination.lng]
-      );
-      map.fitBounds(bounds, { padding: [60, 60], animate: true });
+    // Fly map view smoothly to device GPS when pickup coords update
+    if (pickup && !isPinningMode) {
+      const currentKey = `${pickup.lat.toFixed(5)},${pickup.lng.toFixed(5)}`;
+      if (lastPickupKeyRef.current !== currentKey) {
+        lastPickupKeyRef.current = currentKey;
+        if (pickup && destination && !hasFittedRef.current) {
+          hasFittedRef.current = true;
+          const bounds = L.latLngBounds(
+            [pickup.lat, pickup.lng],
+            [destination.lat, destination.lng]
+          );
+          map.fitBounds(bounds, { padding: [60, 60], animate: true });
+        } else {
+          map.flyTo([pickup.lat, pickup.lng], 16, { animate: true, duration: 1.2 });
+        }
+      }
     }
   }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, isPinningMode, map]);
 

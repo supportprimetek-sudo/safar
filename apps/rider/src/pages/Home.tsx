@@ -74,6 +74,24 @@ export const Home: React.FC = () => {
     }
   };
 
+  // Auto-recenter current location on device GPS when app opens
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setPickupCoords({ lat, lng });
+          reverseGeocode(lat, lng, 'pickup');
+        },
+        (err) => {
+          console.warn('Startup device GPS auto-location notice:', err);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    }
+  }, []);
+
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // 2. Autocomplete search (Text -> Suggestions with Dual API Fallback)
