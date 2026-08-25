@@ -13,7 +13,7 @@ import { ChatsView } from '../components/ChatsView';
 import { ProfileView } from '../components/ProfileView';
 import { History } from './History';
 import { FareEstimate, Ride, SOCKET_EVENTS } from '@safar/shared';
-import { Search, MapPin, Navigation, Crosshair, Loader2, Check } from 'lucide-react';
+import { Search, MapPin, Navigation, Crosshair, Loader2, Check, ArrowLeft, X } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { user } = useAuth();
@@ -453,94 +453,32 @@ export const Home: React.FC = () => {
                       </button>
                     </div>
 
-                    <div className="bg-safar-card p-4 rounded-2xl border border-white/5 space-y-3 relative">
+                    <div className="bg-safar-card p-4 rounded-2xl border border-white/5 space-y-3">
                       {/* Pickup Address Input */}
-                      <div className="flex items-center space-x-3">
+                      <div 
+                        onClick={() => setActiveField('pickup')}
+                        className="flex items-center space-x-3 cursor-pointer p-1"
+                      >
                         <div className="w-3 h-3 rounded-full bg-white border-2 border-safar-teal flex-shrink-0" />
-                        <input
-                          type="text"
-                          value={pickupAddress}
-                          onFocus={() => setActiveField('pickup')}
-                          onChange={(e) => handleAddressInputChange(e.target.value, 'pickup')}
-                          placeholder="Enter Pickup Address"
-                          className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[10px] text-safar-textMuted font-bold uppercase tracking-wider">Pickup Location</div>
+                          <div className="text-sm font-bold text-white truncate">{pickupAddress || 'Enter Pickup Address'}</div>
+                        </div>
                       </div>
 
                       <div className="border-b border-white/5" />
 
                       {/* Destination Address Input */}
-                      <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 rounded-full bg-safar-teal flex-shrink-0" />
-                        <input
-                          type="text"
-                          value={destAddress}
-                          onFocus={() => setActiveField('dest')}
-                          onChange={(e) => handleAddressInputChange(e.target.value, 'dest')}
-                          placeholder="Enter Destination"
-                          className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
-                        />
-                      </div>
-
-                      {/* Autocomplete Dropdown Suggestions */}
-                      {activeField && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-safar-card/95 backdrop-blur-xl border border-safar-teal/40 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-white/5 max-h-60 overflow-y-auto">
-                          {searchingAddress && (
-                            <div className="p-3 text-xs text-safar-teal font-bold flex items-center space-x-2">
-                              <Loader2 className="w-4 h-4 animate-spin text-safar-teal flex-shrink-0" />
-                              <span>Searching places...</span>
-                            </div>
-                          )}
-
-                          {suggestions.length > 0 ? (
-                            suggestions.map((sug, idx) => (
-                              <div
-                                key={idx}
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  handleSelectSuggestion(sug);
-                                }}
-                                className="p-3 hover:bg-safar-teal/15 flex items-start space-x-3 cursor-pointer transition-colors"
-                              >
-                                <MapPin className="w-4 h-4 text-safar-teal mt-0.5 flex-shrink-0" />
-                                <div className="text-xs min-w-0 flex-1">
-                                  <div className="font-bold text-white leading-tight truncate">
-                                    {sug.display_name.split(',')[0]}
-                                  </div>
-                                  <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">
-                                    {sug.display_name}
-                                  </div>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            !searchingAddress && (
-                              <div className="p-2 space-y-1">
-                                <div className="px-3 py-1 text-[10px] uppercase tracking-wider font-extrabold text-safar-textMuted">
-                                  Popular Quick Destinations
-                                </div>
-                                {POPULAR_QUICK_DESTINATIONS.map((pop, idx) => (
-                                  <div
-                                    key={`pop-${idx}`}
-                                    onMouseDown={(e) => {
-                                      e.preventDefault();
-                                      const sug = { display_name: pop.address, lat: pop.lat.toString(), lon: pop.lon.toString() };
-                                      handleSelectSuggestion(sug);
-                                    }}
-                                    className="p-2.5 hover:bg-safar-teal/15 rounded-xl flex items-start space-x-2.5 cursor-pointer transition-colors"
-                                  >
-                                    <Navigation className="w-3.5 h-3.5 text-safar-teal mt-0.5 flex-shrink-0" />
-                                    <div className="text-xs min-w-0 flex-1">
-                                      <div className="font-bold text-white leading-tight">{pop.name}</div>
-                                      <div className="text-[10px] text-safar-textMuted line-clamp-1 mt-0.5">{pop.address}</div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )
-                          )}
+                      <div 
+                        onClick={() => setActiveField('dest')}
+                        className="flex items-center space-x-3 cursor-pointer p-1"
+                      >
+                        <div className="w-3 h-3 rounded-full bg-safar-teal flex-shrink-0 animate-pulse" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[10px] text-safar-teal font-extrabold uppercase tracking-wider">Drop Destination</div>
+                          <div className="text-sm font-bold text-white truncate">{destAddress || 'Search Drop Location...'}</div>
                         </div>
-                      )}
+                      </div>
                     </div>
 
                     <button
@@ -589,6 +527,148 @@ export const Home: React.FC = () => {
 
       {/* Fixed Bottom Navigation Bar */}
       <BottomNav activeTab={activeTab} onSelectTab={(tab) => setActiveTab(tab)} />
+
+      {/* Full Screen Location Search Overlay View (Rapido / Uber Style) */}
+      {activeField && (
+        <div className="fixed inset-0 z-50 bg-[#11151D] flex flex-col pt-[max(2.5rem,env(safe-area-inset-top,36px))] pb-[max(1.5rem,env(safe-area-inset-bottom,24px))] px-4 animate-fade-in rapido-scroll-container">
+          {/* Top Header Bar */}
+          <div className="flex items-center space-x-3 pb-3 border-b border-white/10">
+            <button
+              onClick={() => {
+                setActiveField(null);
+                setSuggestions([]);
+              }}
+              className="w-10 h-10 rounded-2xl bg-safar-card border border-white/10 text-white flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+            <div>
+              <h2 className="text-lg font-extrabold text-white">Select Location</h2>
+              <p className="text-xs text-safar-textMuted font-bold">
+                {activeField === 'dest' ? 'Enter drop destination' : 'Enter pickup location'}
+              </p>
+            </div>
+          </div>
+
+          {/* Dual Address Inputs Container */}
+          <div className="mt-4 bg-safar-card p-4 rounded-3xl border border-white/10 shadow-xl space-y-3">
+            {/* Pickup Address Input */}
+            <div className="flex items-center space-x-3 bg-safar-surface p-3 rounded-2xl border border-white/5">
+              <div className="w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white flex-shrink-0" />
+              <input
+                type="text"
+                value={pickupAddress}
+                onFocus={() => setActiveField('pickup')}
+                onChange={(e) => handleAddressInputChange(e.target.value, 'pickup')}
+                placeholder="Search Pickup Location"
+                autoFocus={activeField === 'pickup'}
+                className="w-full bg-transparent text-sm font-bold text-white placeholder-safar-textMuted focus:outline-none"
+              />
+              {pickupAddress && (
+                <button onClick={() => setPickupAddress('')} className="text-safar-textMuted hover:text-white p-1">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Drop Destination Input */}
+            <div className="flex items-center space-x-3 bg-safar-surface p-3 rounded-2xl border border-white/5">
+              <div className="w-3.5 h-3.5 rounded-full bg-safar-teal border-2 border-white flex-shrink-0 animate-pulse" />
+              <input
+                type="text"
+                value={destAddress}
+                onFocus={() => setActiveField('dest')}
+                onChange={(e) => handleAddressInputChange(e.target.value, 'dest')}
+                placeholder="Where are you going?"
+                autoFocus={activeField === 'dest'}
+                className="w-full bg-transparent text-sm font-bold text-white placeholder-safar-textMuted focus:outline-none"
+              />
+              {destAddress && (
+                <button onClick={() => setDestAddress('')} className="text-safar-textMuted hover:text-white p-1">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Pin on Map Action Button */}
+          <div className="mt-3 flex justify-end">
+            <button
+              onClick={() => {
+                setActiveField(null);
+                setIsPinningMode(true);
+              }}
+              className="px-4 py-2 bg-safar-teal/15 border border-safar-teal/30 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-safar-teal active:scale-95 transition-all"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Pin location on map</span>
+            </button>
+          </div>
+
+          {/* Full Screen Suggestions List */}
+          <div className="mt-4 flex-1 overflow-y-auto space-y-2.5 pr-1">
+            {searchingAddress && (
+              <div className="p-4 bg-safar-card rounded-2xl border border-safar-teal/30 text-xs text-safar-teal font-extrabold flex items-center justify-center space-x-2">
+                <Loader2 className="w-5 h-5 animate-spin text-safar-teal" />
+                <span>Searching places...</span>
+              </div>
+            )}
+
+            {suggestions.length > 0 ? (
+              suggestions.map((sug, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleSelectSuggestion(sug)}
+                  className="p-3.5 bg-safar-card hover:bg-safar-surface border border-white/5 rounded-2xl flex items-start space-x-3.5 cursor-pointer active:scale-98 transition-all shadow-md"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-safar-teal/20 text-safar-teal flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-extrabold text-white text-sm leading-tight truncate">
+                      {sug.display_name.split(',')[0]}
+                    </div>
+                    <div className="text-xs text-safar-textMuted line-clamp-2 mt-0.5">
+                      {sug.display_name}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              !searchingAddress && (
+                <div className="space-y-3 pt-2">
+                  <div className="text-xs font-black uppercase text-safar-textMuted px-1 tracking-wider">
+                    Popular Hotspot Destinations
+                  </div>
+                  <div className="space-y-2">
+                    {POPULAR_QUICK_DESTINATIONS.map((pop, idx) => (
+                      <div
+                        key={`pop-full-${idx}`}
+                        onClick={() => {
+                          const sug = { display_name: pop.address, lat: pop.lat.toString(), lon: pop.lon.toString() };
+                          handleSelectSuggestion(sug);
+                        }}
+                        className="p-3.5 bg-safar-card hover:bg-safar-surface border border-white/5 rounded-2xl flex items-center justify-between cursor-pointer active:scale-98 transition-all shadow-md"
+                      >
+                        <div className="flex items-center space-x-3.5">
+                          <div className="w-9 h-9 rounded-xl bg-safar-teal/15 text-safar-teal flex items-center justify-center flex-shrink-0">
+                            <Navigation className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className="font-extrabold text-white text-sm">{pop.name}</div>
+                            <div className="text-xs text-safar-textMuted line-clamp-1">{pop.address}</div>
+                          </div>
+                        </div>
+                        <ArrowLeft className="w-4 h-4 text-safar-textMuted rotate-180" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
