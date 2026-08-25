@@ -1,12 +1,13 @@
 import React from 'react';
 import { FareEstimate } from '@safar/shared';
-import { User, Bike, Car, Shield } from 'lucide-react';
+import { User, Bike, Car, Shield, ArrowLeft } from 'lucide-react';
 
 interface VehicleSelectorProps {
   estimates: FareEstimate[];
   selectedVehicleId: string | null;
   onSelect: (vehicleId: string) => void;
   onConfirm: () => void;
+  onBack?: () => void;
   loading: boolean;
 }
 
@@ -15,6 +16,7 @@ export const VehicleSelector: React.FC<VehicleSelectorProps> = ({
   selectedVehicleId,
   onSelect,
   onConfirm,
+  onBack,
   loading,
 }) => {
   const getVehicleIcon = (iconName: string) => {
@@ -34,13 +36,32 @@ export const VehicleSelector: React.FC<VehicleSelectorProps> = ({
 
   return (
     <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
-      <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2" />
+      <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-1" />
+
+      {/* Back Button to Change Location / Refill */}
+      {onBack && (
+        <div className="flex items-center justify-between pb-1">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-safar-card hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white transition-all active:scale-95 shadow-md"
+          >
+            <ArrowLeft className="w-4 h-4 text-safar-teal" />
+            <span>Change / Refill Location</span>
+          </button>
+          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-safar-teal/20 text-safar-teal border border-safar-teal/30">
+            Fastest Pickups
+          </span>
+        </div>
+      )}
       
       <div className="flex justify-between items-center px-1">
         <h3 className="text-lg font-extrabold tracking-wide text-white">Choose a Ride</h3>
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-safar-teal/20 text-safar-teal border border-safar-teal/30">
-          Fastest Pickups
-        </span>
+        {!onBack && (
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-safar-teal/20 text-safar-teal border border-safar-teal/30">
+            Fastest Pickups
+          </span>
+        )}
       </div>
 
       <div className="space-y-3 max-h-64 overflow-y-auto pr-1">

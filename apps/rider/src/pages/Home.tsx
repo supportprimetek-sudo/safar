@@ -25,11 +25,11 @@ export const Home: React.FC = () => {
   // Booking Flow Steps
   const [step, setStep] = useState<'SEARCH_LOCATION' | 'SELECT_VEHICLE' | 'SEARCHING_DRIVER' | 'ACTIVE_RIDE' | 'PAYMENT'>('SEARCH_LOCATION');
 
-  // Address & Coordinate state
-  const [pickupAddress, setPickupAddress] = useState('Connaught Place, New Delhi');
+  // Address & Coordinate state (Drop location starts completely blank)
+  const [pickupAddress, setPickupAddress] = useState('Locating current address...');
   const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number }>({ lat: 28.6139, lng: 77.2090 });
-  const [destAddress, setDestAddress] = useState('Cyber Hub, Gurugram');
-  const [destCoords, setDestCoords] = useState<{ lat: number; lng: number }>({ lat: 28.4950, lng: 77.0890 });
+  const [destAddress, setDestAddress] = useState('');
+  const [destCoords, setDestCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   // Autocomplete Suggestions State
   const [activeField, setActiveField] = useState<'pickup' | 'dest' | null>(null);
@@ -197,7 +197,10 @@ export const Home: React.FC = () => {
 
   // 5. Calculate Fare Estimates
   const handleCalculateFare = async () => {
-    if (!pickupAddress || !destAddress) return;
+    if (!destAddress || !destAddress.trim() || !destCoords) {
+      setActiveField('dest');
+      return;
+    }
     setLoading(true);
     try {
       const res = await apiFetch('/api/rides/estimate-fare', {
@@ -390,24 +393,12 @@ export const Home: React.FC = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-safar-bg flex flex-col">
-      {/* Top Frozen Header Bar (Visible on Home Tab Only) */}
-      {activeTab === 'home' && (
-        <div className="fixed top-0 left-0 right-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-3 px-4 flex justify-between items-center bg-gradient-to-b from-[#11151D] via-[#11151D] to-transparent pointer-events-none">
-          <div className="flex items-center space-x-2 bg-safar-card/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 shadow-lg pointer-events-auto">
-            <div className="w-8 h-8 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black">
-              S
-            </div>
-            <div>
-              <div className="text-sm font-black text-white tracking-wide">SAFAR</div>
-              <div className="text-[10px] text-safar-textMuted font-bold">Rider App</div>
-            </div>
-          </div>
-
-          {connectionState === 'POLLING_FALLBACK' && (
-            <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold pointer-events-auto">
-              Polling Fallback
-            </span>
-          )}
+      {/* Polling Fallback Notification (Only when active) */}
+      {activeTab === 'home' && connectionState === 'POLLING_FALLBACK' && (
+        <div className="fixed top-12 right-4 z-30 pointer-events-auto">
+          <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2.5 py-1 rounded-full font-bold shadow-lg">
+            Polling Fallback
+          </span>
         </div>
       )}
 
@@ -517,6 +508,7 @@ export const Home: React.FC = () => {
                   selectedVehicleId={selectedVehicleId}
                   onSelect={(id) => setSelectedVehicleId(id)}
                   onConfirm={handleConfirmBooking}
+                  onBack={() => setStep('SEARCH_LOCATION')}
                   loading={loading}
                 />
               )}
