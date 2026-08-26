@@ -109,6 +109,7 @@ app.post('/api/drivers/offline', auth_1.authenticateToken, driverController.togg
 app.post('/api/drivers/location', auth_1.authenticateToken, driverController.updateLocation);
 app.get('/api/drivers/earnings', auth_1.authenticateToken, driverController.getEarnings);
 app.post('/api/drivers/payout', auth_1.authenticateToken, driverController.requestPayout);
+app.post('/api/drivers/go-home-mode', auth_1.authenticateToken, driverController.toggleGoHomeMode);
 // --- Popular Destinations Routes (Must be declared before /api/rides/:id parameter route) ---
 app.get('/api/rides/popular-destinations', adminController.getPopularDestinations);
 app.get('/api/admin/popular-destinations', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.getPopularDestinations);

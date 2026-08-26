@@ -5,6 +5,7 @@ exports.toggleOffline = toggleOffline;
 exports.updateLocation = updateLocation;
 exports.getEarnings = getEarnings;
 exports.requestPayout = requestPayout;
+exports.toggleGoHomeMode = toggleGoHomeMode;
 const prisma_1 = require("../config/prisma");
 async function toggleOnline(req, res) {
     try {
@@ -176,6 +177,36 @@ async function requestPayout(req, res) {
             success: true,
             message: `🎉 Payout of ₹${reqAmount} processed to ${cleanUpiId}`,
             data: payout,
+        });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function toggleGoHomeMode(req, res) {
+    try {
+        if (!req.user || req.user.role !== 'DRIVER') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+        const { isActive, address, latitude, longitude } = req.body;
+        const driverProfile = await prisma_1.prisma.driverProfile.findUnique({
+            where: { userId: req.user.id },
+        });
+        if (!driverProfile)
+            return res.status(404).json({ success: false, message: 'Driver profile not found' });
+        const updated = await prisma_1.prisma.driverProfile.update({
+            where: { id: driverProfile.id },
+            data: {
+                isGoHomeModeActive: Boolean(isActive),
+                preferredDestinationAddress: address !== undefined ? address : driverProfile.preferredDestinationAddress,
+                preferredDestinationLat: latitude !== undefined ? Number(latitude) : driverProfile.preferredDestinationLat,
+                preferredDestinationLng: longitude !== undefined ? Number(longitude) : driverProfile.preferredDestinationLng,
+            },
+        });
+        return res.json({
+            success: true,
+            message: isActive ? '🏠 Go Home Mode Activated! Receiving rides towards home.' : 'Go Home Mode Deactivated.',
+            data: updated,
         });
     }
     catch (err) {

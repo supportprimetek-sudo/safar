@@ -24,9 +24,11 @@ export const RideRequestModal: React.FC<RideRequestModalProps> = ({ request, onA
   const [timeLeft, setTimeLeft] = useState(request.timeoutSeconds || 15);
 
   useEffect(() => {
-    // Play audio alert chime & vibration on request mount
+    // Play audio alert chime, haptic vibration, & spoken voice announcement on request mount
     try {
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
+
+      // 1. Synthesize audio chime pitch
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -39,8 +41,18 @@ export const RideRequestModal: React.FC<RideRequestModalProps> = ({ request, onA
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.5);
+
+      // 2. Speak voice alert out loud
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const spokenAlert = `New ride request! ${request.distanceKm} kilometers away, fare ${request.estimatedFare} rupees.`;
+        const utterance = new SpeechSynthesisUtterance(spokenAlert);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
     } catch (e) {}
-  }, []);
+  }, [request.distanceKm, request.estimatedFare]);
 
   useEffect(() => {
     if (timeLeft <= 0) {

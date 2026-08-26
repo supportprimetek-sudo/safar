@@ -64,6 +64,10 @@ export interface DriverProfile {
   totalRides: number;
   walletBalance?: number;
   upiId?: string | null;
+  isGoHomeModeActive?: boolean;
+  preferredDestinationAddress?: string | null;
+  preferredDestinationLat?: number | null;
+  preferredDestinationLng?: number | null;
   user?: User;
   kycDocuments?: KycDocument[];
 }

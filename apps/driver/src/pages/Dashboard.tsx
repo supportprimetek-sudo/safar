@@ -28,6 +28,31 @@ export const Dashboard: React.FC = () => {
   const [earnings, setEarnings] = useState<any>({ totalEarnings: 0, totalRides: 0, cashEarnings: 0, qrEarnings: 0 });
   const [activeRide, setActiveRide] = useState<any>(null);
 
+  const [showGoHomeModal, setShowGoHomeModal] = useState(false);
+  const [homeAddress, setHomeAddress] = useState(driver?.preferredDestinationAddress || '');
+  const [goHomeLoading, setGoHomeLoading] = useState(false);
+
+  const handleSaveGoHome = async (activate: boolean) => {
+    setGoHomeLoading(true);
+    try {
+      await apiFetch('/api/drivers/go-home-mode', {
+        method: 'POST',
+        body: JSON.stringify({
+          isActive: activate,
+          address: homeAddress,
+          latitude: 28.6139,
+          longitude: 77.2090,
+        }),
+      });
+      setShowGoHomeModal(false);
+      await refreshUser();
+    } catch (err: any) {
+      alert(err.message || 'Go Home mode update failed');
+    } finally {
+      setGoHomeLoading(false);
+    }
+  };
+
   // Load Earnings & Active Ride
   useEffect(() => {
     async function loadData() {
@@ -167,8 +192,26 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className={`px-3 py-1.5 rounded-full text-xs font-extrabold border ${isOnline ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-            {isOnline ? '🟢 Online' : '⚪ Offline'}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                setHomeAddress(driver?.preferredDestinationAddress || '');
+                setShowGoHomeModal(true);
+              }}
+              className={`px-3 py-1.5 rounded-full text-xs font-extrabold border transition-all active:scale-95 flex items-center space-x-1 ${
+                driver?.isGoHomeModeActive
+                  ? 'bg-safar-teal/20 text-safar-teal border-safar-teal/40 shadow-[0_0_15px_rgba(53,208,176,0.3)]'
+                  : 'bg-safar-surface text-safar-textMuted border-white/10 hover:text-white'
+              }`}
+              title="Set Go Home Destination"
+            >
+              <span>🏠</span>
+              <span>{driver?.isGoHomeModeActive ? 'Go Home' : 'Set Home'}</span>
+            </button>
+
+            <div className={`px-3 py-1.5 rounded-full text-xs font-extrabold border ${isOnline ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
+              {isOnline ? '🟢 Online' : '⚪ Offline'}
+            </div>
           </div>
         </div>
       </div>
@@ -265,6 +308,76 @@ export const Dashboard: React.FC = () => {
 
       {activeTab === 'earnings' && <EarningsView />}
       {activeTab === 'profile' && <DriverProfileView />}
+
+      {/* Go Home Destination Modal */}
+      {showGoHomeModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#11151D] border border-safar-teal/40 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-fade-in relative">
+            <button
+              onClick={() => setShowGoHomeModal(false)}
+              className="absolute top-4 right-4 text-safar-textMuted hover:text-white font-black text-sm"
+            >
+              ✕
+            </button>
+
+            <div className="w-14 h-14 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center mx-auto text-2xl font-black border border-safar-teal/30">
+              🏠
+            </div>
+
+            <div>
+              <h3 className="text-lg font-black text-white">"Go Home" Mode</h3>
+              <p className="text-xs text-safar-textMuted mt-0.5">Set your preferred end-of-day home address to filter rides along your route.</p>
+            </div>
+
+            <div className="space-y-3 text-left">
+              <div>
+                <label className="text-[11px] font-extrabold uppercase text-safar-textMuted block mb-1">
+                  Home Destination Address
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={homeAddress}
+                  onChange={(e) => setHomeAddress(e.target.value)}
+                  placeholder="e.g. Connaught Place, New Delhi"
+                  className="w-full py-3 px-4 bg-safar-surface border border-white/20 rounded-2xl text-white font-bold text-xs focus:outline-none focus:border-safar-teal transition-all"
+                />
+              </div>
+
+              <div className="pt-2 grid grid-cols-2 gap-3">
+                {driver?.isGoHomeModeActive ? (
+                  <button
+                    type="button"
+                    disabled={goHomeLoading}
+                    onClick={() => handleSaveGoHome(false)}
+                    className="py-3 bg-red-500/20 text-red-400 border border-red-500/30 font-extrabold text-xs rounded-xl hover:bg-red-500/30 active:scale-95 transition-all col-span-2"
+                  >
+                    Turn Off Go Home Mode
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowGoHomeModal(false)}
+                      className="py-3 bg-safar-card border border-white/10 text-white font-extrabold text-xs rounded-xl hover:bg-safar-surface active:scale-95 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={goHomeLoading || !homeAddress.trim()}
+                      onClick={() => handleSaveGoHome(true)}
+                      className="py-3 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-black text-xs rounded-xl shadow-lg active:scale-95 transition-all"
+                    >
+                      {goHomeLoading ? 'Activating...' : 'Activate Go Home'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Fixed Bottom Navigation Bar */}
       <DriverBottomNav activeTab={activeTab} onSelectTab={(tab) => setActiveTab(tab)} />
