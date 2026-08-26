@@ -97,7 +97,7 @@ export const ActiveTrip: React.FC = () => {
     }
   };
 
-  const handleConfirmPayment = async (method: 'CASH' | 'QR') => {
+  const handleConfirmPayment = async (method: 'CASH' | 'UPI' | 'QR') => {
     setActionLoading(true);
     try {
       await apiFetch(`/api/rides/${rideId}/payment/confirm`, {
@@ -228,28 +228,42 @@ export const ActiveTrip: React.FC = () => {
             </div>
 
             {showQr && upiPayload && (
-              <div className="bg-white p-4 rounded-2xl max-w-[180px] mx-auto text-center space-y-2 shadow-xl border border-white/20">
+              <div className="bg-white p-4 rounded-2xl max-w-[180px] mx-auto text-center space-y-2 shadow-xl border border-white/20 animate-fade-in">
                 <QRCodeSVG value={upiPayload} size={140} />
-                <span className="text-[10px] text-gray-800 font-extrabold">Rider Scans QR to Pay</span>
+                <span className="text-[10px] text-gray-800 font-extrabold block">Rider Scans QR to Pay</span>
               </div>
             )}
 
+            {/* Toggle QR Button */}
+            <button
+              type="button"
+              onClick={() => setShowQr(!showQr)}
+              className="w-full py-2.5 bg-safar-card border border-white/10 text-safar-teal hover:text-white font-extrabold rounded-xl text-xs flex items-center justify-center space-x-2 active:scale-95 transition-all"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>{showQr ? 'Hide Rider Payment QR' : 'Show Rider Payment QR Code'}</span>
+            </button>
+
+            {/* 2 Payment Mode Buttons: Cash Received & Confirm Online (QR) */}
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => setShowQr(!showQr)}
-                className="py-3.5 bg-safar-card border border-white/10 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
+                type="button"
+                onClick={() => handleConfirmPayment('CASH')}
+                disabled={actionLoading}
+                className="py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all shadow-lg border border-emerald-400/30"
               >
-                <QrCode className="w-4 h-4 text-safar-teal" />
-                <span>{showQr ? 'Hide QR' : 'Show QR'}</span>
+                <Banknote className="w-4 h-4" />
+                <span>Cash Received</span>
               </button>
 
               <button
-                onClick={() => handleConfirmPayment('CASH')}
+                type="button"
+                onClick={() => handleConfirmPayment('UPI')}
                 disabled={actionLoading}
-                className="py-3.5 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all shadow-lg"
+                className="py-3.5 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all shadow-lg"
               >
-                <Banknote className="w-4 h-4" />
-                <span>Payment Received</span>
+                <QrCode className="w-4 h-4" />
+                <span>Confirm Online (QR)</span>
               </button>
             </div>
           </div>

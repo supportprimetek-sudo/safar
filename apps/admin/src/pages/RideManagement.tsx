@@ -37,38 +37,61 @@ export const RideManagement: React.FC = () => {
               <th className="p-4">Vehicle</th>
               <th className="p-4">Pickup & Drop</th>
               <th className="p-4">Fare</th>
+              <th className="p-4">Payment Mode</th>
               <th className="p-4">Status</th>
               <th className="p-4">Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {rides.map((r) => (
-              <tr key={r.id} className="hover:bg-safar-surface/50 transition-colors">
-                <td className="p-4 font-mono text-safar-teal text-xs">#{r.id.slice(0, 8)}</td>
-                <td className="p-4 font-bold text-white">{r.rider?.fullName}</td>
-                <td className="p-4 text-safar-textMuted">{r.driver?.user?.fullName || 'Searching...'}</td>
-                <td className="p-4 font-bold text-safar-teal">{r.vehicleType?.name}</td>
-                <td className="p-4 space-y-1">
-                  <div className="text-white font-semibold truncate max-w-xs">P: {r.pickupAddress}</div>
-                  <div className="text-safar-textMuted truncate max-w-xs">D: {r.destinationAddress}</div>
-                </td>
-                <td className="p-4 font-black text-white text-sm">₹{r.finalFare || r.estimatedFare}</td>
-                <td className="p-4">
-                  <span
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                      r.rideStatus === 'COMPLETED'
-                        ? 'bg-safar-teal/20 text-safar-teal'
-                        : r.rideStatus === 'CANCELLED'
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-yellow-500/20 text-yellow-400'
-                    }`}
-                  >
-                    {r.rideStatus}
-                  </span>
-                </td>
-                <td className="p-4 text-safar-textMuted">{new Date(r.createdAt).toLocaleTimeString()}</td>
-              </tr>
-            ))}
+            {rides.map((r) => {
+              const pMethod = r.payment?.paymentMethod || r.paymentMethod || 'CASH';
+              const isPaid = r.payment?.paymentStatus === 'PAID' || r.rideStatus === 'COMPLETED';
+
+              return (
+                <tr key={r.id} className="hover:bg-safar-surface/50 transition-colors">
+                  <td className="p-4 font-mono text-safar-teal text-xs">#{r.id.slice(0, 8)}</td>
+                  <td className="p-4 font-bold text-white">{r.rider?.fullName || 'Rider'}</td>
+                  <td className="p-4 text-safar-textMuted">{r.driver?.user?.fullName || 'Searching...'}</td>
+                  <td className="p-4 font-bold text-safar-teal">{r.vehicleType?.name}</td>
+                  <td className="p-4 space-y-1">
+                    <div className="text-white font-semibold truncate max-w-xs">P: {r.pickupAddress}</div>
+                    <div className="text-safar-textMuted truncate max-w-xs">D: {r.destinationAddress}</div>
+                  </td>
+                  <td className="p-4 font-black text-white text-sm">₹{r.finalFare || r.estimatedFare}</td>
+                  <td className="p-4">
+                    {isPaid ? (
+                      pMethod === 'CASH' ? (
+                        <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full font-black text-[10px] inline-flex items-center space-x-1">
+                          💵 Cash
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-[10px] inline-flex items-center space-x-1">
+                          📲 Online QR
+                        </span>
+                      )
+                    ) : (
+                      <span className="px-2.5 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-bold text-[10px]">
+                        ⏳ Pending
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                        r.rideStatus === 'COMPLETED'
+                          ? 'bg-safar-teal/20 text-safar-teal'
+                          : r.rideStatus === 'CANCELLED'
+                          ? 'bg-red-500/20 text-red-400'
+                          : 'bg-yellow-500/20 text-yellow-400'
+                      }`}
+                    >
+                      {r.rideStatus}
+                    </span>
+                  </td>
+                  <td className="p-4 text-safar-textMuted">{new Date(r.createdAt).toLocaleTimeString()}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
