@@ -528,7 +528,13 @@ export const Home: React.FC = () => {
 
               {step === 'SEARCHING_DRIVER' && <SearchingDriver onCancel={handleCancelRide} />}
 
-              {step === 'ACTIVE_RIDE' && currentRide && <ActiveRideSheet ride={currentRide} onCancelRide={handleCancelRide} />}
+              {step === 'ACTIVE_RIDE' && currentRide && (
+                <ActiveRideSheet
+                  ride={currentRide}
+                  onCancelRide={handleCancelRide}
+                  onOpenChat={() => setActiveTab('chats')}
+                />
+              )}
 
               {step === 'PAYMENT' && currentRide && (
                 <PaymentModal

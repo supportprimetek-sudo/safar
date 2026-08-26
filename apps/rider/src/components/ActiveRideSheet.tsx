@@ -1,13 +1,14 @@
 import React from 'react';
 import { Ride } from '@safar/shared';
-import { Phone, Star, Shield, MapPin, Navigation } from 'lucide-react';
+import { Phone, Star, Shield, MapPin, Navigation, MessageSquare } from 'lucide-react';
 
 interface ActiveRideSheetProps {
   ride: Ride;
   onCancelRide?: () => void;
+  onOpenChat?: () => void;
 }
 
-export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancelRide }) => {
+export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancelRide, onOpenChat }) => {
   const driverUser = ride.driver?.user;
   const vehicle = ride.vehicleType;
 
@@ -51,9 +52,9 @@ export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancel
 
       {/* Driver & Vehicle Details Card */}
       {ride.driver && (
-        <div className="bg-safar-card p-4 rounded-2xl border border-white/5 flex items-center justify-between">
+        <div className="bg-safar-card p-4 rounded-2xl border border-white/5 flex items-center justify-between shadow-lg">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full bg-safar-teal/20 border border-safar-teal flex items-center justify-center font-bold text-safar-teal text-lg">
+            <div className="w-12 h-12 rounded-full bg-safar-teal/20 border border-safar-teal flex items-center justify-center font-bold text-safar-teal text-lg shadow-md">
               {driverUser?.fullName?.charAt(0) || 'D'}
             </div>
             <div>
@@ -69,12 +70,25 @@ export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancel
             </div>
           </div>
 
-          <a
-            href={`tel:${driverUser?.phone}`}
-            className="w-11 h-11 rounded-full bg-safar-teal text-safar-bg flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
-          >
-            <Phone className="w-5 h-5 fill-current" />
-          </a>
+          <div className="flex items-center space-x-2">
+            {onOpenChat && (
+              <button
+                type="button"
+                onClick={onOpenChat}
+                className="w-11 h-11 rounded-full bg-safar-teal/20 text-safar-teal border border-safar-teal/30 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                title="Chat with Driver"
+              >
+                <MessageSquare className="w-5 h-5" />
+              </button>
+            )}
+            <a
+              href={`tel:${driverUser?.phone}`}
+              className="w-11 h-11 rounded-full bg-safar-teal text-safar-bg flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+              title="Call Driver"
+            >
+              <Phone className="w-5 h-5 fill-current" />
+            </a>
+          </div>
         </div>
       )}
 
