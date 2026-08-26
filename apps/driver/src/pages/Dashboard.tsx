@@ -10,6 +10,7 @@ import { DriverChatsView } from '../components/DriverChatsView';
 import { DriverProfileView } from '../components/DriverProfileView';
 import { SOCKET_EVENTS } from '@safar/shared';
 import { Power, DollarSign, Award, Car, LogOut, AlertCircle, Navigation } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { initNativeNotifications, triggerNativeNotification } from '../utils/notifications';
 
 export const Dashboard: React.FC = () => {
