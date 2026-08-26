@@ -56,10 +56,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, durationMs
       {/* Main Logo & Emblem */}
       <div className="text-center relative z-10 space-y-6">
         <div className="relative inline-block">
-          <div className="absolute -inset-4 rounded-3xl bg-[#35D0B0]/20 blur-xl animate-pulse" />
-          <div className="w-24 h-24 rounded-3xl bg-[#202631] border-2 border-[#35D0B0] flex items-center justify-center text-[#35D0B0] font-black text-4xl shadow-[0_0_40px_rgba(53,208,176,0.4)] relative">
-            S
-          </div>
+          <div className="absolute -inset-4 rounded-3xl bg-[#FAE3C1]/30 blur-xl animate-pulse" />
+          <img
+            src="/logo.png"
+            alt="SAFAR Driver"
+            className="w-28 h-28 rounded-3xl shadow-[0_0_40px_rgba(250,227,193,0.4)] relative object-cover border-2 border-[#FAE3C1]"
+          />
         </div>
 
         <div>

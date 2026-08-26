@@ -28,9 +28,11 @@ export const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-safar-bg flex flex-col justify-center px-6 py-12">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-safar-teal/20 text-safar-teal border border-safar-teal/30 shadow-[0_0_30px_rgba(53,208,176,0.4)]">
-          <ShieldCheck className="w-9 h-9" />
-        </div>
+        <img
+          src="/logo.png"
+          alt="SAFAR Admin"
+          className="w-20 h-20 mx-auto rounded-2xl border-2 border-[#FD9386] shadow-[0_0_30px_rgba(253,147,134,0.4)] object-cover"
+        />
         <h2 className="text-3xl font-black tracking-tight text-white">SAFAR ADMIN</h2>
         <p className="text-sm text-safar-textMuted">Platform Operations & Control Center</p>
       </div>

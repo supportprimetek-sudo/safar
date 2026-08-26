@@ -23,9 +23,11 @@ export const Sidebar: React.FC = () => {
       <div className="space-y-6">
         {/* Brand */}
         <div className="flex items-center space-x-3 px-3 py-2 bg-safar-surface rounded-2xl border border-white/5">
-          <div className="w-10 h-10 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black text-xl shadow-[0_0_20px_rgba(53,208,176,0.5)]">
-            S
-          </div>
+          <img
+            src="/logo.png"
+            alt="SAFAR Admin"
+            className="w-10 h-10 rounded-xl object-cover border border-[#FD9386]/40 shadow-md"
+          />
           <div>
             <div className="text-base font-black text-white tracking-wider">SAFAR</div>
             <div className="text-[10px] font-bold text-safar-teal uppercase">Admin Control Panel</div>
