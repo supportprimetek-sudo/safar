@@ -93,7 +93,7 @@ export function initializeSocketService(io: SocketIOServer) {
     });
 
     // Real-time Ride Chat Handler
-    socket.on(SOCKET_EVENTS.CHAT_SEND_MESSAGE, (data: { rideId: string; senderRole: 'RIDER' | 'DRIVER'; text: string; senderName?: string; timestamp?: string }) => {
+    socket.on(SOCKET_EVENTS.CHAT_SEND_MESSAGE, async (data: { rideId: string; senderRole: 'RIDER' | 'DRIVER'; text: string; senderName?: string; timestamp?: string }) => {
       if (!data.rideId || !data.text || !data.text.trim()) return;
 
       const messagePayload = {
@@ -105,8 +105,28 @@ export function initializeSocketService(io: SocketIOServer) {
         timestamp: data.timestamp || new Date().toISOString(),
       };
 
-      // Broadcast message to everyone in the ride room
+      // 1. Broadcast message to ride room
       io.to(`ride:${data.rideId}`).emit(SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
+
+      // 2. Broadcast directly to driver & rider rooms for 100% guaranteed delivery
+      try {
+        const ride = await prisma.ride.findUnique({
+          where: { id: data.rideId },
+          select: { riderId: true, driverId: true },
+        });
+
+        if (ride) {
+          if (ride.riderId) {
+            io.to(`user:${ride.riderId}`).emit(SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
+          }
+          if (ride.driverId) {
+            io.to(`driver:${ride.driverId}`).emit(SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
+          }
+        }
+      } catch (err) {
+        console.error('Error broadcasting direct chat message:', err);
+      }
+
       console.log(`💬 Chat message in ride:${data.rideId} from ${data.senderRole}: ${data.text}`);
     });
 

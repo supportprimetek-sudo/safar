@@ -178,6 +178,7 @@ export const Home: React.FC = () => {
   };
 
   const [notification, setNotification] = useState<{ title: string; message: string; icon?: string; onOk?: () => void } | null>(null);
+  const [showChatModal, setShowChatModal] = useState(false);
 
   const [isPinningMode, setIsPinningMode] = useState(false);
 
@@ -532,7 +533,7 @@ export const Home: React.FC = () => {
                 <ActiveRideSheet
                   ride={currentRide}
                   onCancelRide={handleCancelRide}
-                  onOpenChat={() => setActiveTab('chats')}
+                  onOpenChat={() => setShowChatModal(true)}
                 />
               )}
 
@@ -550,7 +551,6 @@ export const Home: React.FC = () => {
 
         {activeTab === 'places' && <PlacesView onSelectPlace={handleSelectPlaceFromTab} />}
         {activeTab === 'history' && <History />}
-        {activeTab === 'chats' && <ChatsView currentRide={currentRide} socket={socket} />}
         {activeTab === 'profile' && <ProfileView />}
       </div>
 
@@ -720,6 +720,40 @@ export const Home: React.FC = () => {
             >
               OK
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-Up Rapido Chat Drawer Modal inside Rider Home */}
+      {showChatModal && currentRide && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-end">
+          <div className="bg-[#11151D] border-t border-white/10 rounded-t-3xl h-[88vh] flex flex-col p-4 pb-2 animate-fade-in relative">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 px-1">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-safar-teal/20 text-safar-teal font-black flex items-center justify-center text-lg border border-safar-teal/30">
+                  {currentRide.driver?.user?.fullName?.charAt(0) || 'D'}
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-white text-base leading-tight">
+                    {currentRide.driver?.user?.fullName || 'Assigned Driver'}
+                  </h3>
+                  <p className="text-xs text-safar-teal font-bold flex items-center mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-safar-teal mr-1.5 animate-pulse" />
+                    Driver Connected • Live Chat
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowChatModal(false)}
+                className="w-9 h-9 rounded-xl bg-safar-card border border-white/10 text-white flex items-center justify-center font-extrabold text-sm active:scale-95 transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ChatsView currentRide={currentRide} socket={socket} />
+            </div>
           </div>
         </div>
       )}

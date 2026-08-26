@@ -1,7 +1,7 @@
 import React from 'react';
 import { MapPin, Compass, History, MessageSquare, User } from 'lucide-react';
 
-export type RiderTab = 'home' | 'places' | 'history' | 'chats' | 'profile';
+export type RiderTab = 'home' | 'places' | 'history' | 'profile';
 
 interface BottomNavProps {
   activeTab: RiderTab;
@@ -13,7 +13,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onSelectTab }) 
     { id: 'home', label: 'Rides', icon: <MapPin className="w-5 h-5" /> },
     { id: 'places', label: 'Places', icon: <Compass className="w-5 h-5" /> },
     { id: 'history', label: 'History', icon: <History className="w-5 h-5" /> },
-    { id: 'chats', label: 'Chats', icon: <MessageSquare className="w-5 h-5" /> },
     { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
   ];
 

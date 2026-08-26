@@ -1,7 +1,7 @@
 import React from 'react';
 import { Car, DollarSign, MessageSquare, User } from 'lucide-react';
 
-export type DriverTab = 'dashboard' | 'earnings' | 'chats' | 'profile';
+export type DriverTab = 'dashboard' | 'earnings' | 'profile';
 
 interface DriverBottomNavProps {
   activeTab: DriverTab;
@@ -12,7 +12,6 @@ export const DriverBottomNav: React.FC<DriverBottomNavProps> = ({ activeTab, onS
   const tabs: { id: DriverTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <Car className="w-5 h-5" /> },
     { id: 'earnings', label: 'Earnings', icon: <DollarSign className="w-5 h-5" /> },
-    { id: 'chats', label: 'Chats', icon: <MessageSquare className="w-5 h-5" /> },
     { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
   ];
 
