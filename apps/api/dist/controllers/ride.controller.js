@@ -68,6 +68,7 @@ async function createRide(req, res) {
         const estimatedDurationMinutes = (0, geo_1.estimateDurationMinutes)(distanceKm);
         const calculatedFare = vehicleType.baseFare + distanceKm * vehicleType.perKmRate + estimatedDurationMinutes * vehicleType.perMinuteRate;
         const estimatedFare = Math.round(Math.max(calculatedFare, vehicleType.minimumFare));
+        const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
         // Create ride in DB
         const ride = await prisma_1.prisma.ride.create({
             data: {
@@ -83,6 +84,7 @@ async function createRide(req, res) {
                 estimatedDurationMinutes,
                 estimatedFare,
                 rideStatus: 'SEARCHING_DRIVER',
+                otpCode,
             },
             include: {
                 rider: { select: { id: true, fullName: true, phone: true, profileImage: true } },
@@ -337,6 +339,14 @@ async function driverArrived(req, res) {
 async function startRide(req, res) {
     try {
         const { id } = req.params;
+        const { otpCode } = req.body;
+        const existingRide = await prisma_1.prisma.ride.findUnique({ where: { id } });
+        if (!existingRide) {
+            return res.status(404).json({ success: false, message: 'Ride not found' });
+        }
+        if (existingRide.otpCode && existingRide.otpCode !== otpCode) {
+            return res.status(400).json({ success: false, message: 'Invalid 4-digit Ride OTP code. Please check with rider.' });
+        }
         const ride = await prisma_1.prisma.ride.update({
             where: { id },
             data: {

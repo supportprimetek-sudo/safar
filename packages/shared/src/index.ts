@@ -117,6 +117,7 @@ export interface Ride {
   completedAt?: string | null;
   cancelledAt?: string | null;
   cancellationReason?: string | null;
+  otpCode?: string | null;
   rider?: User;
   driver?: DriverProfile;
   vehicleType?: VehicleType;

@@ -49,6 +49,23 @@ export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancel
         {getStatusBadge()}
       </div>
 
+      {/* 4-Digit Ride Start OTP Banner */}
+      {ride.otpCode && ride.rideStatus !== 'IN_PROGRESS' && (
+        <div className="bg-safar-teal/15 border border-safar-teal/40 p-3.5 rounded-2xl flex items-center justify-between shadow-lg animate-pulse-subtle">
+          <div>
+            <div className="text-[10px] font-black uppercase text-safar-teal tracking-wider">Start Trip OTP</div>
+            <div className="text-xs text-white/80 font-medium">Give to driver to verify</div>
+          </div>
+          <div className="flex space-x-1.5 font-black text-xl text-safar-bg">
+            {ride.otpCode.split('').map((digit, idx) => (
+              <span key={idx} className="w-8 h-9 rounded-xl bg-safar-teal flex items-center justify-center shadow-md border border-white/20">
+                {digit}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Driver & Vehicle Details Card */}
       {ride.driver && (
         <div className="bg-safar-card p-4 rounded-2xl border border-white/5 flex items-center justify-between shadow-lg">

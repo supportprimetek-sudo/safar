@@ -55,13 +55,29 @@ export const ActiveTrip: React.FC = () => {
     }
   };
 
-  const handleStartRide = async () => {
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [enteredOtp, setEnteredOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+
+  const handleStartRide = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!enteredOtp || enteredOtp.length !== 4) {
+      setOtpError('Please enter full 4-digit OTP');
+      return;
+    }
+
     setActionLoading(true);
+    setOtpError('');
     try {
-      await apiFetch(`/api/rides/${rideId}/start`, { method: 'POST' });
+      await apiFetch(`/api/rides/${rideId}/start`, {
+        method: 'POST',
+        body: JSON.stringify({ otpCode: enteredOtp }),
+      });
+      setShowOtpModal(false);
+      setEnteredOtp('');
       await fetchRide();
     } catch (err: any) {
-      setNotification({ title: 'Notice', message: err.message || 'Start ride failed' });
+      setOtpError(err.message || 'Invalid 4-digit OTP code');
     } finally {
       setActionLoading(false);
     }
@@ -184,12 +200,16 @@ export const ActiveTrip: React.FC = () => {
           </button>
         ) : ride.rideStatus === 'DRIVER_ARRIVED' ? (
           <button
-            onClick={handleStartRide}
+            onClick={() => {
+              setOtpError('');
+              setEnteredOtp('');
+              setShowOtpModal(true);
+            }}
             disabled={actionLoading}
             className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-black text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 transition-all active:scale-98"
           >
             <Navigation className="w-5 h-5" />
-            <span>START RIDE</span>
+            <span>ENTER OTP TO START RIDE</span>
           </button>
         ) : ride.rideStatus === 'IN_PROGRESS' ? (
           <button
@@ -237,6 +257,62 @@ export const ActiveTrip: React.FC = () => {
       </div>
 
       {/* Dark Styled Custom Notification Modal */}
+      {/* 4-Digit Ride Start OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#11151D] border border-safar-teal/40 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-5 animate-fade-in relative">
+            <button
+              onClick={() => setShowOtpModal(false)}
+              className="absolute top-4 right-4 text-safar-textMuted hover:text-white font-black text-sm"
+            >
+              ✕
+            </button>
+            <div className="w-14 h-14 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center mx-auto text-2xl font-black border border-safar-teal/30">
+              🔐
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white">Enter Rider OTP</h3>
+              <p className="text-xs text-safar-textMuted mt-1">Ask the rider for the 4-digit start OTP shown on their screen.</p>
+            </div>
+
+            <form onSubmit={handleStartRide} className="space-y-4">
+              <input
+                type="tel"
+                maxLength={4}
+                autoFocus
+                value={enteredOtp}
+                onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="• • • •"
+                className="w-full text-center text-3xl font-black tracking-[0.6em] py-3.5 bg-safar-surface border border-white/20 rounded-2xl text-safar-teal focus:outline-none focus:border-safar-teal transition-all shadow-inner"
+              />
+
+              {otpError && (
+                <div className="text-xs font-extrabold text-red-400 bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-xl animate-bounce">
+                  {otpError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOtpModal(false)}
+                  className="py-3 bg-safar-card border border-white/10 text-white font-extrabold text-xs rounded-xl hover:bg-safar-surface active:scale-95 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading || enteredOtp.length !== 4}
+                  className="py-3 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-black text-xs rounded-xl shadow-lg active:scale-95 transition-all"
+                >
+                  {actionLoading ? 'Verifying...' : 'Verify & Start'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {notification && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#1E2530] border border-safar-teal/30 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-fade-in">
