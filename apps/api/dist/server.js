@@ -136,6 +136,7 @@ app.get('/api/rides/:id/payment', auth_1.authenticateToken, paymentController.ge
 app.post('/api/rides/:id/payment/confirm', auth_1.authenticateToken, paymentController.confirmPayment);
 // --- Admin Dashboard Routes ---
 app.get('/api/admin/dashboard', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.getDashboardStats);
+app.get('/api/admin/analytics', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.getAnalyticsSummary);
 app.get('/api/admin/live-map', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.getLiveMapData);
 app.get('/api/admin/drivers', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listDrivers);
 app.get('/api/admin/riders', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listRiders);

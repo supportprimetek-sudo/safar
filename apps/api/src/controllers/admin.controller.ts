@@ -200,3 +200,45 @@ export async function deletePopularDestination(req: AuthRequest, res: Response) 
     return res.status(500).json({ success: false, message: err.message });
   }
 }
+
+export async function getAnalyticsSummary(req: AuthRequest, res: Response) {
+  try {
+    const completedRides = await prisma.ride.findMany({
+      where: { rideStatus: 'COMPLETED' },
+      select: { estimatedFare: true },
+    });
+
+    const totalGrossRevenue = completedRides.reduce((sum, r) => sum + r.estimatedFare, 0);
+    const totalPlatformCommission = Math.round(totalGrossRevenue * 0.15);
+    const totalNetDriverEarnings = totalGrossRevenue - totalPlatformCommission;
+
+    const payoutRequests = await prisma.payoutRequest.aggregate({
+      where: { status: 'APPROVED' },
+      _sum: { amount: true },
+      _count: { id: true },
+    });
+
+    const totalSettledPayouts = payoutRequests._sum.amount || 0;
+
+    const totalRidesCount = await prisma.ride.count();
+    const completedRidesCount = completedRides.length;
+    const cancelledRidesCount = await prisma.ride.count({ where: { rideStatus: 'CANCELLED' } });
+    const activeDriversCount = await prisma.driverProfile.count({ where: { onlineStatus: 'ONLINE' } });
+
+    return res.json({
+      success: true,
+      data: {
+        totalGrossRevenue,
+        totalPlatformCommission,
+        totalNetDriverEarnings,
+        totalSettledPayouts,
+        totalRidesCount,
+        completedRidesCount,
+        cancelledRidesCount,
+        activeDriversCount,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}

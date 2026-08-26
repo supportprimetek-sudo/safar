@@ -116,6 +116,7 @@ app.post('/api/rides/:id/payment/confirm', authenticateToken, paymentController.
 
 // --- Admin Dashboard Routes ---
 app.get('/api/admin/dashboard', authenticateToken, requireRole('ADMIN'), adminController.getDashboardStats);
+app.get('/api/admin/analytics', authenticateToken, requireRole('ADMIN'), adminController.getAnalyticsSummary);
 app.get('/api/admin/live-map', authenticateToken, requireRole('ADMIN'), adminController.getLiveMapData);
 app.get('/api/admin/drivers', authenticateToken, requireRole('ADMIN'), adminController.listDrivers);
 app.get('/api/admin/riders', authenticateToken, requireRole('ADMIN'), adminController.listRiders);

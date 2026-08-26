@@ -27,19 +27,40 @@ export async function estimateFare(req: AuthRequest, res: Response) {
       orderBy: { baseFare: 'asc' },
     });
 
+    // Calculate Dynamic Surge Multiplier based on real-time demand vs active drivers
+    const pendingRidesCount = await prisma.ride.count({
+      where: { rideStatus: { in: ['PENDING', 'SEARCHING'] } },
+    });
+
+    const onlineDriversCount = await prisma.driverProfile.count({
+      where: { onlineStatus: 'ONLINE' },
+    });
+
+    let surgeMultiplier = 1.0;
+    if (pendingRidesCount >= 1 && pendingRidesCount >= onlineDriversCount) {
+      const demandRatio = (pendingRidesCount + 1) / Math.max(1, onlineDriversCount);
+      surgeMultiplier = Math.min(1.8, Math.max(1.1, Number((1.0 + (demandRatio - 1) * 0.25).toFixed(1))));
+    }
+
+    const isSurgeActive = surgeMultiplier > 1.0;
+
     const estimates = vehicleTypes.map((vt) => {
-      const calculatedFare = vt.baseFare + distanceKm * vt.perKmRate + durationMinutes * vt.perMinuteRate;
-      const estimatedFare = Math.round(Math.max(calculatedFare, vt.minimumFare));
+      const rawFare = (vt.baseFare + distanceKm * vt.perKmRate + durationMinutes * vt.perMinuteRate) * surgeMultiplier;
+      const estimatedFare = Math.round(Math.max(rawFare, vt.minimumFare * surgeMultiplier));
+      const baseFareNoSurge = Math.round(Math.max(vt.baseFare + distanceKm * vt.perKmRate + durationMinutes * vt.perMinuteRate, vt.minimumFare));
       return {
         vehicleType: vt,
         distanceKm,
         durationMinutes,
         estimatedFare,
-        etaMinutes: Math.floor(Math.random() * 4) + 2, // 2-5 min ETA mock
+        baseFareNoSurge,
+        surgeMultiplier,
+        isSurgeActive,
+        etaMinutes: Math.floor(Math.random() * 3) + 2, // 2-4 min ETA
       };
     });
 
-    return res.json({ success: true, data: { distanceKm, durationMinutes, estimates } });
+    return res.json({ success: true, data: { distanceKm, durationMinutes, surgeMultiplier, isSurgeActive, estimates } });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });
   }

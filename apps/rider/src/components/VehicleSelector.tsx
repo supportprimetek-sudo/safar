@@ -57,10 +57,17 @@ export const VehicleSelector: React.FC<VehicleSelectorProps> = ({
       
       <div className="flex justify-between items-center px-1">
         <h3 className="text-lg font-extrabold tracking-wide text-white">Choose a Ride</h3>
-        {!onBack && (
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-safar-teal/20 text-safar-teal border border-safar-teal/30">
-            Fastest Pickups
+        {estimates[0]?.isSurgeActive ? (
+          <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse flex items-center space-x-1">
+            <span>🔥</span>
+            <span>{estimates[0]?.surgeMultiplier?.toFixed(1)}x Surge Active</span>
           </span>
+        ) : (
+          !onBack && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-safar-teal/20 text-safar-teal border border-safar-teal/30">
+              Fastest Pickups
+            </span>
+          )
         )}
       </div>
 

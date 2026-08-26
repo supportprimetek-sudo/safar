@@ -63,6 +63,48 @@ export const Dashboard: React.FC = () => {
         })}
       </div>
 
+      {/* Platform Financial Analytics Banner */}
+      <div className="bg-safar-card p-6 rounded-3xl border border-safar-teal/30 space-y-4 shadow-2xl relative overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center font-black text-xl">
+              💰
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-white">Platform Commission & Revenue Settlement</h3>
+              <p className="text-xs text-safar-textMuted">Live financial ledger with 15% commission breakdown.</p>
+            </div>
+          </div>
+          <span className="px-3 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/40 rounded-full text-xs font-black">
+            15% Fixed Commission
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+          <div className="p-4 rounded-2xl bg-safar-surface border border-white/5 space-y-1">
+            <div className="text-[11px] text-safar-textMuted font-extrabold uppercase">Total Gross Fares</div>
+            <div className="text-2xl font-black text-white">₹{stats?.totalRevenue || 0}</div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-safar-teal/15 border border-safar-teal/30 space-y-1">
+            <div className="text-[11px] text-safar-teal font-extrabold uppercase">15% Platform Commission</div>
+            <div className="text-2xl font-black text-safar-teal">₹{Math.round((stats?.totalRevenue || 0) * 0.15)}</div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-safar-surface border border-white/5 space-y-1">
+            <div className="text-[11px] text-safar-textMuted font-extrabold uppercase">Net Driver Revenue (85%)</div>
+            <div className="text-2xl font-black text-white">₹{Math.round((stats?.totalRevenue || 0) * 0.85)}</div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-safar-surface border border-white/5 space-y-1">
+            <div className="text-[11px] text-safar-textMuted font-extrabold uppercase">Completion Ratio</div>
+            <div className="text-2xl font-black text-emerald-400">
+              {stats?.completedRides ? Math.round((stats.completedRides / Math.max(1, (stats.completedRides + stats.cancelledRides))) * 100) : 100}%
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Operational Overview Panel */}
       <div className="bg-safar-card p-6 rounded-3xl border border-white/5 space-y-4">
         <h3 className="text-xl font-black text-white">Platform Health & Realtime Services</h3>

@@ -10,6 +10,7 @@ exports.getPopularDestinations = getPopularDestinations;
 exports.createPopularDestination = createPopularDestination;
 exports.updatePopularDestination = updatePopularDestination;
 exports.deletePopularDestination = deletePopularDestination;
+exports.getAnalyticsSummary = getAnalyticsSummary;
 const prisma_1 = require("../config/prisma");
 async function getDashboardStats(req, res) {
     try {
@@ -195,6 +196,43 @@ async function deletePopularDestination(req, res) {
         const { id } = req.params;
         await prisma_1.prisma.popularDestination.delete({ where: { id } });
         return res.json({ success: true, message: 'Popular destination deleted' });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function getAnalyticsSummary(req, res) {
+    try {
+        const completedRides = await prisma_1.prisma.ride.findMany({
+            where: { rideStatus: 'COMPLETED' },
+            select: { estimatedFare: true },
+        });
+        const totalGrossRevenue = completedRides.reduce((sum, r) => sum + r.estimatedFare, 0);
+        const totalPlatformCommission = Math.round(totalGrossRevenue * 0.15);
+        const totalNetDriverEarnings = totalGrossRevenue - totalPlatformCommission;
+        const payoutRequests = await prisma_1.prisma.payoutRequest.aggregate({
+            where: { status: 'APPROVED' },
+            _sum: { amount: true },
+            _count: { id: true },
+        });
+        const totalSettledPayouts = payoutRequests._sum.amount || 0;
+        const totalRidesCount = await prisma_1.prisma.ride.count();
+        const completedRidesCount = completedRides.length;
+        const cancelledRidesCount = await prisma_1.prisma.ride.count({ where: { rideStatus: 'CANCELLED' } });
+        const activeDriversCount = await prisma_1.prisma.driverProfile.count({ where: { onlineStatus: 'ONLINE' } });
+        return res.json({
+            success: true,
+            data: {
+                totalGrossRevenue,
+                totalPlatformCommission,
+                totalNetDriverEarnings,
+                totalSettledPayouts,
+                totalRidesCount,
+                completedRidesCount,
+                cancelledRidesCount,
+                activeDriversCount,
+            },
+        });
     }
     catch (err) {
         return res.status(500).json({ success: false, message: err.message });
