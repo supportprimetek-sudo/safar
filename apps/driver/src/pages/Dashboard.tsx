@@ -59,14 +59,18 @@ export const Dashboard: React.FC = () => {
     async function loadData() {
       try {
         const eRes = await apiFetch('/api/drivers/earnings');
-        setEarnings(eRes.data);
+        if (eRes && eRes.data) {
+          setEarnings(eRes.data);
+        }
 
         const rRes = await apiFetch('/api/rides/driver/history');
-        const active = rRes.data.find((r: any) =>
-          ['DRIVER_ACCEPTED', 'DRIVER_ARRIVING', 'DRIVER_ARRIVED', 'IN_PROGRESS', 'PAYMENT_PENDING'].includes(r.rideStatus)
-        );
-        if (active) {
-          setActiveRide(active);
+        if (rRes && rRes.data && Array.isArray(rRes.data)) {
+          const active = rRes.data.find((r: any) =>
+            ['DRIVER_ACCEPTED', 'DRIVER_ARRIVING', 'DRIVER_ARRIVED', 'IN_PROGRESS', 'PAYMENT_PENDING'].includes(r.rideStatus)
+          );
+          if (active) {
+            setActiveRide(active);
+          }
         }
       } catch (err) {}
     }
