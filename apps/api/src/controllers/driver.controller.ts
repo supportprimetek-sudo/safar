@@ -177,8 +177,8 @@ export async function getEarnings(req: AuthRequest, res: Response) {
       .filter((p) => p.status !== 'REJECTED')
       .reduce((acc, p) => acc + Number(p.amount), 0);
 
-    // 6. Available Wallet Balance for Payout (Calculated ONLY from QR / Digital Pay as Cash is in-hand)
-    const walletBalance = Math.max(0, netQrEarnings - totalPayoutsRequested);
+    // 6. Effective available wallet balance for Payout Withdrawal
+    const walletBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
 
     // Sync DB walletBalance if needed
     await prisma.driverProfile.update({
@@ -227,11 +227,12 @@ export async function requestPayout(req: AuthRequest, res: Response) {
 
     const driverProfile = await prisma.driverProfile.findUnique({
       where: { userId: req.user.id },
+      include: { user: true },
     });
 
     if (!driverProfile) return res.status(404).json({ success: false, message: 'Driver profile not found' });
 
-    // Fetch all completed rides & payments for QR calculation
+    // Fetch all completed rides & payments for payout calculation
     const completedRides = await prisma.ride.findMany({
       where: { driverId: driverProfile.id, rideStatus: 'COMPLETED' },
       include: { payment: true },
@@ -241,26 +242,22 @@ export async function requestPayout(req: AuthRequest, res: Response) {
       where: { driverId: driverProfile.id },
     });
 
-    let qrEarnings = 0;
+    let grossEarnings = 0;
     for (const r of completedRides) {
-      const fare = Number(r.finalFare || r.estimatedFare || r.payment?.amount || 0);
-      const pMethod = r.payment?.paymentMethod || 'CASH';
-      if (pMethod === 'QR' || pMethod === 'UPI' || pMethod === 'ONLINE') {
-        qrEarnings += fare;
-      }
+      grossEarnings += Number(r.finalFare || r.estimatedFare || r.payment?.amount || 0);
     }
 
-    const netQrEarnings = Math.round(qrEarnings * 0.85);
+    const netEarnings = Math.round(grossEarnings * 0.85);
     const totalPayoutsRequested = payoutHistory
       .filter((p) => p.status !== 'REJECTED')
       .reduce((acc, p) => acc + Number(p.amount), 0);
 
-    const availableBalance = Math.max(0, netQrEarnings - totalPayoutsRequested);
+    const availableBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
 
     if (availableBalance < reqAmount) {
       return res.status(400).json({
         success: false,
-        message: `Insufficient digital payout balance. Available QR/Digital Balance: ₹${availableBalance} (Cash trips collected in hand are excluded from payout withdrawal).`,
+        message: `Insufficient payout balance. Available for Payout: ₹${availableBalance}`,
       });
     }
 
@@ -285,11 +282,19 @@ export async function requestPayout(req: AuthRequest, res: Response) {
     // Emit Socket.IO event to Admin room so Admin App instantly shows the new payout request
     try {
       const io = getIO();
+      const driverName = driverProfile.user?.fullName || req.user.email || 'Driver Partner';
       io.to('role:ADMIN').emit('PAYOUT_REQUEST_CREATED', {
         id: payout.id,
         amount: reqAmount,
         upiId: cleanUpiId,
-        driverName: req.user.email,
+        driverName,
+        status: 'PENDING',
+      });
+      io.emit('PAYOUT_REQUEST_CREATED', {
+        id: payout.id,
+        amount: reqAmount,
+        upiId: cleanUpiId,
+        driverName,
         status: 'PENDING',
       });
     } catch (e) {}

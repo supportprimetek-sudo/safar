@@ -92,8 +92,7 @@ export const EarningsView: React.FC = () => {
 
   const gross = Math.max(earnings.grossEarnings || 0, (earnings.cashEarnings || 0) + (earnings.qrEarnings || 0));
   const net = earnings.netEarnings || Math.round(gross * 0.85);
-  const netQr = earnings.netQrEarnings !== undefined ? earnings.netQrEarnings : Math.round((earnings.qrEarnings || 0) * 0.85);
-  const wallet = earnings.walletBalance !== undefined ? earnings.walletBalance : netQr;
+  const wallet = earnings.walletBalance !== undefined && earnings.walletBalance > 0 ? earnings.walletBalance : net;
 
   return (
     <div className="h-full w-full bg-safar-bg p-4 pt-2 pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5 rapido-scroll-container">
@@ -104,17 +103,17 @@ export const EarningsView: React.FC = () => {
           <div className="flex justify-between items-center text-safar-textMuted text-xs font-bold uppercase tracking-wider">
             <span className="flex items-center text-safar-teal font-black">
               <Wallet className="w-4 h-4 mr-1.5" />
-              Digital Payout Wallet
+              Net Wallet Balance
             </span>
             <span className="px-2.5 py-0.5 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-extrabold text-[10px]">
-              QR Pay Available
+              Available for Payout
             </span>
           </div>
 
           <div className="flex justify-between items-end">
             <div>
               <div className="text-3xl font-black text-white">₹{wallet}</div>
-              <div className="text-[10px] text-safar-textMuted mt-0.5 font-bold">Net 85% QR/Digital Pay (Cash collected in-hand)</div>
+              <div className="text-[10px] text-safar-textMuted mt-0.5 font-bold">Net Earnings after 15% Platform Commission</div>
             </div>
 
             <button
