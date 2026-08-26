@@ -90,6 +90,10 @@ export const EarningsView: React.FC = () => {
     }
   };
 
+  const gross = Math.max(earnings.grossEarnings || 0, (earnings.cashEarnings || 0) + (earnings.qrEarnings || 0));
+  const net = earnings.netEarnings || Math.round(gross * 0.85);
+  const wallet = earnings.walletBalance || net;
+
   return (
     <div className="h-full w-full bg-safar-bg p-4 pt-2 pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5 rapido-scroll-container">
       {/* Sticky Top Header Card: Net Wallet Balance & Instant Payout Button */}
@@ -108,13 +112,13 @@ export const EarningsView: React.FC = () => {
 
           <div className="flex justify-between items-end">
             <div>
-              <div className="text-3xl font-black text-white">₹{earnings.walletBalance || 0}</div>
+              <div className="text-3xl font-black text-white">₹{wallet}</div>
               <div className="text-[10px] text-safar-textMuted mt-0.5 font-bold">Net Earnings after 15% Platform Commission</div>
             </div>
 
             <button
               onClick={() => {
-                setPayoutAmount((earnings.walletBalance || 0).toString());
+                setPayoutAmount(wallet.toString());
                 setShowPayoutModal(true);
               }}
               className="px-4 py-2.5 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-black text-xs rounded-2xl flex items-center space-x-1.5 shadow-lg active:scale-95 transition-all"
@@ -132,11 +136,11 @@ export const EarningsView: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div className="bg-safar-surface p-3 rounded-2xl border border-white/5 space-y-1">
             <div className="text-safar-textMuted text-[10px] font-bold">Gross Fare Revenue</div>
-            <div className="font-extrabold text-white text-base">₹{earnings.grossEarnings || 0}</div>
+            <div className="font-extrabold text-white text-base">₹{gross}</div>
           </div>
           <div className="bg-safar-surface p-3 rounded-2xl border border-white/5 space-y-1">
             <div className="text-safar-textMuted text-[10px] font-bold">Net Driver Share (85%)</div>
-            <div className="font-extrabold text-safar-teal text-base">₹{earnings.netEarnings || 0}</div>
+            <div className="font-extrabold text-safar-teal text-base">₹{net}</div>
           </div>
         </div>
 

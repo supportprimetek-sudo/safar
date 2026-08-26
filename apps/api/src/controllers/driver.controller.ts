@@ -139,10 +139,10 @@ export async function getEarnings(req: AuthRequest, res: Response) {
 
     // 1. Calculate from completed rides
     for (const r of completedRides) {
-      const fare = Number(r.finalFare || r.estimatedFare || 0);
+      const fare = Number(r.finalFare || r.estimatedFare || r.payment?.amount || 0);
       grossEarnings += fare;
       const pMethod = r.payment?.paymentMethod || 'CASH';
-      if (pMethod === 'QR') {
+      if (pMethod === 'QR' || pMethod === 'UPI' || pMethod === 'ONLINE') {
         qrEarnings += fare;
       } else {
         cashEarnings += fare;
@@ -154,7 +154,7 @@ export async function getEarnings(req: AuthRequest, res: Response) {
       if (p.paymentStatus === 'PAID' && !completedRides.some((r) => r.id === p.rideId)) {
         const fare = Number(p.amount || 0);
         grossEarnings += fare;
-        if (p.paymentMethod === 'QR') {
+        if (p.paymentMethod === 'QR' || p.paymentMethod === 'UPI' || p.paymentMethod === 'ONLINE') {
           qrEarnings += fare;
         } else {
           cashEarnings += fare;
@@ -162,16 +162,19 @@ export async function getEarnings(req: AuthRequest, res: Response) {
       }
     }
 
-    // 3. 85% Net Driver Share & 15% Platform Commission
+    // 3. Guarantee grossEarnings is at least cashEarnings + qrEarnings
+    grossEarnings = Math.max(grossEarnings, cashEarnings + qrEarnings);
+
+    // 4. 85% Net Driver Share & 15% Platform Commission
     const netEarnings = Math.round(grossEarnings * 0.85);
     const platformCommission = grossEarnings - netEarnings;
 
-    // 4. Calculate total requested/approved payouts
+    // 5. Calculate total requested/approved payouts
     const totalPayoutsRequested = payoutHistory
       .filter((p) => p.status !== 'REJECTED')
       .reduce((acc, p) => acc + Number(p.amount), 0);
 
-    // 5. Effective available wallet balance
+    // 6. Effective available wallet balance
     const walletBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
 
     // Sync DB walletBalance if needed
