@@ -35,13 +35,13 @@ export const DriverManagement: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-black text-white">Driver Partner Management</h1>
-        <p className="text-sm text-safar-textMuted mt-1">Manage driver accounts, status, ratings, and vehicle category assignments.</p>
+    <div className="p-4 sm:p-8 space-y-6 pt-2">
+      <div className="sticky top-0 z-20 pt-3 md:pt-[max(2rem,env(safe-area-inset-top,28px))] pb-3 bg-[#11151D] border-b border-white/10 -mx-4 px-4 sm:-mx-8 sm:px-8 mb-4">
+        <h1 className="text-xl sm:text-3xl font-black text-white">Driver Partner Management</h1>
+        <p className="text-xs sm:text-sm text-safar-textMuted mt-0.5">Manage driver accounts, status, ratings, and vehicle category assignments.</p>
       </div>
 
-      <div className="bg-safar-card rounded-3xl border border-white/5 shadow-2xl overflow-hidden">
+      <div className="bg-safar-card rounded-3xl border border-white/5 shadow-2xl overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-safar-surface text-safar-textMuted uppercase font-extrabold border-b border-white/5">
             <tr>

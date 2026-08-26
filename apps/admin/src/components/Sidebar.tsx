@@ -19,7 +19,7 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-safar-card border-r border-white/10 flex flex-col justify-between p-4 h-screen sticky top-0">
+    <aside className="hidden md:flex w-64 bg-safar-card border-r border-white/10 flex-col justify-between p-4 h-screen sticky top-0 flex-shrink-0">
       <div className="space-y-6">
         {/* Brand */}
         <div className="flex items-center space-x-3 px-3 py-2 bg-safar-surface rounded-2xl border border-white/5">

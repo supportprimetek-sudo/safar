@@ -119,22 +119,25 @@ export const DestinationManagement: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-8 space-y-6 pt-2">
       {/* Top Action Header */}
-      <div className="flex justify-between items-center bg-safar-card p-5 rounded-3xl border border-white/10 shadow-lg">
+      <div className="sticky top-0 z-20 pt-3 md:pt-[max(2rem,env(safe-area-inset-top,28px))] pb-3 bg-[#11151D] border-b border-white/10 -mx-4 px-4 sm:-mx-8 sm:px-8 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-black text-white">Popular Destinations Management</h2>
-          <p className="text-xs text-safar-textMuted mt-0.5">
-            Configure map latitude & longitude coordinates, category badges, and image thumbnails for Rider App grids.
+          <h1 className="text-xl sm:text-3xl font-black text-white flex items-center gap-2">
+            <MapPin className="w-6 h-6 text-safar-teal" />
+            <span>Popular Destinations</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-safar-textMuted mt-0.5">
+            Configure featured quick-book locations shown on rider home screen.
           </p>
         </div>
 
         <button
           onClick={handleOpenAddModal}
-          className="px-4 py-2.5 bg-safar-teal text-safar-bg font-extrabold text-xs rounded-2xl flex items-center space-x-2 shadow-lg active:scale-95 transition-transform"
+          className="px-4 py-2.5 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold rounded-2xl flex items-center space-x-2 text-xs sm:text-sm shadow-lg active:scale-95 transition-all"
         >
-          <Plus className="w-4 h-4" />
-          <span>Add New Destination</span>
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span>Add Destination</span>
         </button>
       </div>
 

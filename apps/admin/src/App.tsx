@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
+import { AdminBottomNav } from './components/AdminBottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
@@ -31,9 +32,32 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   return (
-    <div className="flex min-h-screen bg-safar-bg text-white">
+    <div className="flex flex-col md:flex-row min-h-screen bg-safar-bg text-white relative">
+      {/* Mobile Top Header with Safe Area Notch Clearance */}
+      <div className="md:hidden sticky top-0 z-30 pt-[max(2.5rem,calc(env(safe-area-inset-top,32px)+0.5rem))] pb-3 px-4 bg-[#11151D]/95 backdrop-blur-xl border-b border-white/10 flex items-center justify-between shadow-lg">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-8 h-8 rounded-xl bg-safar-teal text-safar-bg flex items-center justify-center font-black text-base shadow-[0_0_15px_rgba(53,208,176,0.5)]">
+            S
+          </div>
+          <div>
+            <div className="text-sm font-black text-white leading-tight">SAFAR ADMIN</div>
+            <div className="text-[9px] font-extrabold text-safar-teal uppercase">Control Center</div>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full text-xs font-extrabold flex items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-safar-teal mr-1.5 animate-pulse" />
+            Live
+          </span>
+        </div>
+      </div>
+
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <main className="flex-1 overflow-y-auto pb-[max(6.5rem,calc(env(safe-area-inset-bottom,32px)+4rem))] md:pb-8">
+        {children}
+      </main>
+      <AdminBottomNav />
     </div>
   );
 };

@@ -59,10 +59,10 @@ export const LiveMap: React.FC = () => {
   return (
     <div className="h-screen w-full relative flex flex-col">
       {/* Top Header */}
-      <div className="absolute top-6 left-6 z-20 bg-safar-card/90 backdrop-blur-md p-4 rounded-2xl border border-white/10 shadow-2xl flex items-center space-x-4">
+      <div className="absolute top-3 left-3 sm:top-6 sm:left-6 z-20 bg-safar-card/90 backdrop-blur-md p-3.5 sm:p-4 rounded-2xl border border-white/10 shadow-2xl flex items-center space-x-3 sm:space-x-4 max-w-[calc(100vw-1.5rem)]">
         <div>
-          <h2 className="text-lg font-black text-white">SAFAR Fleet Operations Map</h2>
-          <p className="text-xs text-safar-textMuted mt-0.5">
+          <h2 className="text-sm sm:text-lg font-black text-white leading-tight">SAFAR Fleet Operations Map</h2>
+          <p className="text-[11px] sm:text-xs text-safar-textMuted mt-0.5">
             Active Drivers: <strong className="text-safar-teal">{data.onlineDrivers.length}</strong> • Active Trips: <strong className="text-yellow-400">{data.activeRides.length}</strong>
           </p>
         </div>

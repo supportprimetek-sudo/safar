@@ -61,11 +61,11 @@ export const VehicleManagement: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-8 space-y-6 pt-2">
+      <div className="sticky top-0 z-20 pt-3 md:pt-[max(2rem,env(safe-area-inset-top,28px))] pb-3 bg-[#11151D] border-b border-white/10 -mx-4 px-4 sm:-mx-8 sm:px-8 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-black text-white">Vehicle & Fare Management</h1>
-          <p className="text-sm text-safar-textMuted mt-1">Configure vehicle categories, passenger capacities, and dynamic pricing rules.</p>
+          <h1 className="text-xl sm:text-3xl font-black text-white">Vehicle & Fare Management</h1>
+          <p className="text-xs sm:text-sm text-safar-textMuted mt-0.5">Configure vehicle categories, passenger capacities, and dynamic pricing rules.</p>
         </div>
 
         <button
@@ -74,9 +74,9 @@ export const VehicleManagement: React.FC = () => {
             setFormData({ name: '', description: '', icon: 'car', image: '/vehicles/default.png', baseFare: 50, perKmRate: 15, perMinuteRate: 2, minimumFare: 70, cancellationFee: 25, capacity: 4 });
             setShowModal(true);
           }}
-          className="px-5 py-3 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold rounded-2xl flex items-center space-x-2 shadow-lg"
+          className="px-4 py-2.5 bg-safar-teal hover:bg-safar-tealHover text-safar-bg font-extrabold rounded-2xl flex items-center space-x-2 text-xs sm:text-sm shadow-lg active:scale-95 transition-all"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Add Vehicle Category</span>
         </button>
       </div>
