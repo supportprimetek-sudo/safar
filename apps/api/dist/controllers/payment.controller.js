@@ -71,12 +71,16 @@ async function confirmPayment(req, res) {
             where: { id },
             data: { rideStatus: 'COMPLETED' },
         });
-        // Increment driver total rides if driver exists
+        // Increment driver total rides and credit 85% earnings to wallet if driver exists
         if (ride.driverId) {
             try {
+                const netDriverShare = Math.round(amount * 0.85); // 85% net fare after 15% platform fee
                 await prisma_1.prisma.driverProfile.update({
                     where: { id: ride.driverId },
-                    data: { totalRides: { increment: 1 } },
+                    data: {
+                        totalRides: { increment: 1 },
+                        walletBalance: { increment: netDriverShare },
+                    },
                 });
             }
             catch (e) { }

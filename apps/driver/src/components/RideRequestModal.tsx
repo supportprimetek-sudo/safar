@@ -24,6 +24,25 @@ export const RideRequestModal: React.FC<RideRequestModalProps> = ({ request, onA
   const [timeLeft, setTimeLeft] = useState(request.timeoutSeconds || 15);
 
   useEffect(() => {
+    // Play audio alert chime & vibration on request mount
+    try {
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
     if (timeLeft <= 0) {
       onReject(request.rideId);
       return;

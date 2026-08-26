@@ -113,7 +113,14 @@ export async function getEarnings(req: AuthRequest, res: Response) {
       },
     });
 
-    const totalEarnings = completedPayments.reduce((acc, p) => acc + p.amount, 0);
+    const payoutHistory = await prisma.payoutRequest.findMany({
+      where: { driverId: driverProfile.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    const grossEarnings = completedPayments.reduce((acc, p) => acc + p.amount, 0);
+    const netEarnings = Math.round(grossEarnings * 0.85); // 85% driver share after 15% platform commission
     const cashEarnings = completedPayments.filter((p) => p.paymentMethod === 'CASH').reduce((acc, p) => acc + p.amount, 0);
     const qrEarnings = completedPayments.filter((p) => p.paymentMethod === 'QR').reduce((acc, p) => acc + p.amount, 0);
 
@@ -121,11 +128,75 @@ export async function getEarnings(req: AuthRequest, res: Response) {
       success: true,
       data: {
         totalRides: driverProfile.totalRides,
-        totalEarnings,
+        walletBalance: driverProfile.walletBalance || 0,
+        upiId: driverProfile.upiId || '',
+        grossEarnings,
+        netEarnings,
         cashEarnings,
         qrEarnings,
+        platformCommission: grossEarnings - netEarnings,
         rating: driverProfile.rating,
+        payoutHistory,
       },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function requestPayout(req: AuthRequest, res: Response) {
+  try {
+    if (!req.user || req.user.role !== 'DRIVER') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const { amount, upiId } = req.body;
+    const reqAmount = Number(amount);
+
+    if (!reqAmount || reqAmount < 100) {
+      return res.status(400).json({ success: false, message: 'Minimum payout withdrawal amount is ₹100' });
+    }
+
+    if (!upiId || !upiId.trim()) {
+      return res.status(400).json({ success: false, message: 'Valid UPI ID is required for payout transfer' });
+    }
+
+    const driverProfile = await prisma.driverProfile.findUnique({
+      where: { userId: req.user.id },
+    });
+
+    if (!driverProfile) return res.status(404).json({ success: false, message: 'Driver profile not found' });
+
+    if (driverProfile.walletBalance < reqAmount) {
+      return res.status(400).json({ success: false, message: `Insufficient wallet balance. Available: ₹${driverProfile.walletBalance}` });
+    }
+
+    const cleanUpiId = upiId.trim();
+
+    // Create payout request and deduct from wallet
+    const [payout] = await prisma.$transaction([
+      prisma.payoutRequest.create({
+        data: {
+          driverId: driverProfile.id,
+          amount: reqAmount,
+          upiId: cleanUpiId,
+          status: 'APPROVED', // Instant settlement
+          processedAt: new Date(),
+        },
+      }),
+      prisma.driverProfile.update({
+        where: { id: driverProfile.id },
+        data: {
+          walletBalance: { decrement: reqAmount },
+          upiId: cleanUpiId,
+        },
+      }),
+    ]);
+
+    return res.json({
+      success: true,
+      message: `🎉 Payout of ₹${reqAmount} processed to ${cleanUpiId}`,
+      data: payout,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });

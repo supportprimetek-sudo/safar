@@ -62,8 +62,20 @@ export interface DriverProfile {
   lastLocationUpdate?: string | null;
   rating: number;
   totalRides: number;
+  walletBalance?: number;
+  upiId?: string | null;
   user?: User;
   kycDocuments?: KycDocument[];
+}
+
+export interface PayoutRequest {
+  id: string;
+  driverId: string;
+  amount: number;
+  upiId: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  processedAt?: string | null;
 }
 
 export interface KycDocument {
