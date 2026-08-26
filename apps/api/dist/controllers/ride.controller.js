@@ -69,7 +69,7 @@ async function createRide(req, res) {
         if (!req.user || req.user.role !== 'RIDER') {
             return res.status(403).json({ success: false, message: 'Only riders can request rides' });
         }
-        const { vehicleTypeId, pickupAddress, pickupLatitude, pickupLongitude, destinationAddress, destinationLatitude, destinationLongitude, } = req.body;
+        const { vehicleTypeId, pickupAddress, pickupLatitude, pickupLongitude, destinationAddress, destinationLatitude, destinationLongitude, scheduledFor, intermediateStops, isWomenOnlyRequested, } = req.body;
         if (!vehicleTypeId ||
             !pickupAddress ||
             pickupLatitude === undefined ||
@@ -102,18 +102,22 @@ async function createRide(req, res) {
                 distanceKm,
                 estimatedDurationMinutes,
                 estimatedFare,
-                rideStatus: 'SEARCHING_DRIVER',
+                rideStatus: scheduledFor ? 'SCHEDULED' : 'SEARCHING_DRIVER',
                 otpCode,
+                scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+                intermediateStops: intermediateStops ? JSON.stringify(intermediateStops) : null,
+                isWomenOnlyRequested: Boolean(isWomenOnlyRequested),
             },
             include: {
                 rider: { select: { id: true, fullName: true, phone: true, profileImage: true } },
                 vehicleType: true,
             },
         });
-        // Find all online drivers
+        // Find all online drivers (Filter female drivers if requested)
         const onlineDrivers = await prisma_1.prisma.driverProfile.findMany({
             where: {
                 onlineStatus: 'ONLINE',
+                ...(isWomenOnlyRequested ? { gender: 'FEMALE' } : {}),
             },
             include: {
                 user: { select: { id: true, fullName: true, phone: true } },

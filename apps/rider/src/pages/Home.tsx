@@ -43,6 +43,12 @@ export const Home: React.FC = () => {
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [upiPayload, setUpiPayload] = useState<string>('');
 
+  // Rider Safety & Convenience State
+  const [intermediateStops, setIntermediateStops] = useState<string[]>([]);
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDateTime, setScheduledDateTime] = useState('');
+  const [isWomenOnly, setIsWomenOnly] = useState(false);
+
   const POPULAR_QUICK_DESTINATIONS = [
     { name: 'Cyber Hub, Gurugram', lat: 28.4950, lon: 77.0890, address: 'Cyber Hub, DLF Phase 2, Gurugram' },
     { name: 'Connaught Place, New Delhi', lat: 28.6139, lon: 77.2090, address: 'Connaught Place, Rajiv Chowk, New Delhi' },
@@ -240,15 +246,26 @@ export const Home: React.FC = () => {
           destinationAddress: destAddress,
           destinationLatitude: destCoords.lat,
           destinationLongitude: destCoords.lng,
+          scheduledFor: isScheduled ? scheduledDateTime : null,
+          intermediateStops: intermediateStops.filter((s) => s.trim()),
+          isWomenOnlyRequested: isWomenOnly,
         }),
       });
 
       const ride: Ride = res.data;
       setCurrentRide(ride);
-      setStep('SEARCHING_DRIVER');
-
-      if (socket) {
-        socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, ride.id);
+      if (isScheduled) {
+        setNotification({
+          title: '📅 Ride Scheduled!',
+          message: `Your ride to ${destAddress} is scheduled for ${scheduledDateTime || 'later'}. We will notify drivers 15 mins prior!`,
+          icon: '📅',
+          onOk: () => setStep('SEARCH_LOCATION'),
+        });
+      } else {
+        setStep('SEARCHING_DRIVER');
+        if (socket) {
+          socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, ride.id);
+        }
       }
     } catch (err: any) {
       setNotification({ title: 'Notice', message: err.message || 'Failed to request ride' });
@@ -487,6 +504,39 @@ export const Home: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Intermediate Stops */}
+                      {intermediateStops.map((stopAddr, idx) => (
+                        <React.Fragment key={idx}>
+                          <div className="border-b border-white/5" />
+                          <div className="flex items-center justify-between p-1">
+                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                              <div className="w-2.5 h-2.5 rounded-full bg-yellow-400 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[10px] text-yellow-400 font-extrabold uppercase tracking-wider">Stop {idx + 1}</div>
+                                <input
+                                  type="text"
+                                  placeholder="Enter intermediate stop address..."
+                                  value={stopAddr}
+                                  onChange={(e) => {
+                                    const next = [...intermediateStops];
+                                    next[idx] = e.target.value;
+                                    setIntermediateStops(next);
+                                  }}
+                                  className="w-full bg-transparent text-sm font-bold text-white focus:outline-none placeholder-white/40"
+                                />
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setIntermediateStops(intermediateStops.filter((_, i) => i !== idx))}
+                              className="text-safar-textMuted hover:text-red-400 text-xs font-bold px-2"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </React.Fragment>
+                      ))}
+
                       <div className="border-b border-white/5" />
 
                       {/* Destination Address Input */}
@@ -501,6 +551,47 @@ export const Home: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Intermediate Stop & Ride Timing Control Bar */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      {intermediateStops.length < 2 && (
+                        <button
+                          type="button"
+                          onClick={() => setIntermediateStops([...intermediateStops, ''])}
+                          className="px-3 py-1.5 bg-safar-card hover:bg-safar-surface border border-white/10 rounded-xl text-xs font-bold text-safar-teal flex items-center space-x-1 transition-all active:scale-95"
+                        >
+                          <span>+ Add Stop</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setIsScheduled(!isScheduled)}
+                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-all active:scale-95 ${
+                          isScheduled
+                            ? 'bg-safar-teal/20 text-safar-teal border-safar-teal/40'
+                            : 'bg-safar-card text-safar-textMuted border-white/10 hover:text-white'
+                        }`}
+                      >
+                        <span>📅</span>
+                        <span>{isScheduled ? 'Scheduled' : 'Book for Later'}</span>
+                      </button>
+                    </div>
+
+                    {/* Schedule Date-Time Selector */}
+                    {isScheduled && (
+                      <div className="bg-safar-card p-3 rounded-2xl border border-safar-teal/30 space-y-1.5 animate-fade-in">
+                        <label className="text-[11px] font-extrabold uppercase text-safar-teal block">
+                          Schedule Pickup Time (Up to 7 Days)
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={scheduledDateTime}
+                          onChange={(e) => setScheduledDateTime(e.target.value)}
+                          className="w-full py-2.5 px-3 bg-safar-surface border border-white/15 rounded-xl text-white font-bold text-xs focus:outline-none focus:border-safar-teal"
+                        />
+                      </div>
+                    )}
 
                     <button
                       onClick={handleCalculateFare}

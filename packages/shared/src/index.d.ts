@@ -47,6 +47,7 @@ export interface DriverProfile {
     preferredDestinationAddress?: string | null;
     preferredDestinationLat?: number | null;
     preferredDestinationLng?: number | null;
+    gender?: string | null;
     user?: User;
     kycDocuments?: KycDocument[];
 }
@@ -109,6 +110,10 @@ export interface Ride {
     cancelledAt?: string | null;
     cancellationReason?: string | null;
     otpCode?: string | null;
+    scheduledFor?: string | null;
+    intermediateStops?: string[] | null;
+    isWomenOnlyRequested?: boolean;
+    isAudioRecorded?: boolean;
     rider?: User;
     driver?: DriverProfile;
     vehicleType?: VehicleType;

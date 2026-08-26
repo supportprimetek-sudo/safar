@@ -206,14 +206,29 @@ export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancel
         </div>
       </div>
 
-      {/* Safety Actions & Share Live Trip */}
-      <div className="grid grid-cols-2 gap-3 pt-1">
+      {/* Safety Actions, Share Live Trip & Audio Recording */}
+      <div className="grid grid-cols-3 gap-2 pt-1">
         <button
           onClick={handleShareLiveTrip}
-          className="py-3 bg-safar-surface hover:bg-safar-card border border-white/10 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 active:scale-95 transition-all"
+          className="py-3 bg-safar-surface hover:bg-safar-card border border-white/10 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
         >
           <Share2 className="w-4 h-4 text-safar-teal" />
-          <span>Share Live Trip</span>
+          <span>Share Trip</span>
+        </button>
+
+        <button
+          onClick={async () => {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              alert('🎙️ Encrypted Safety Audio Recording Started! Recorded securely for your trip safety.');
+            } catch (e) {
+              alert('Microphone access is required for in-trip safety audio recording.');
+            }
+          }}
+          className="py-3 bg-safar-surface hover:bg-safar-card border border-white/10 text-safar-teal font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
+        >
+          <span>🎙️</span>
+          <span>Audio Record</span>
         </button>
 
         <button

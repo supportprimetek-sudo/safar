@@ -80,6 +80,9 @@ export async function createRide(req: AuthRequest, res: Response) {
       destinationAddress,
       destinationLatitude,
       destinationLongitude,
+      scheduledFor,
+      intermediateStops,
+      isWomenOnlyRequested,
     } = req.body;
 
     if (
@@ -126,8 +129,11 @@ export async function createRide(req: AuthRequest, res: Response) {
         distanceKm,
         estimatedDurationMinutes,
         estimatedFare,
-        rideStatus: 'SEARCHING_DRIVER',
+        rideStatus: scheduledFor ? 'SCHEDULED' : 'SEARCHING_DRIVER',
         otpCode,
+        scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+        intermediateStops: intermediateStops ? JSON.stringify(intermediateStops) : null,
+        isWomenOnlyRequested: Boolean(isWomenOnlyRequested),
       },
       include: {
         rider: { select: { id: true, fullName: true, phone: true, profileImage: true } },
@@ -135,10 +141,11 @@ export async function createRide(req: AuthRequest, res: Response) {
       },
     });
 
-    // Find all online drivers
+    // Find all online drivers (Filter female drivers if requested)
     const onlineDrivers = await prisma.driverProfile.findMany({
       where: {
         onlineStatus: 'ONLINE',
+        ...(isWomenOnlyRequested ? { gender: 'FEMALE' } : {}),
       },
       include: {
         user: { select: { id: true, fullName: true, phone: true } },
