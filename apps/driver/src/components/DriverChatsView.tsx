@@ -52,9 +52,21 @@ export const DriverChatsView: React.FC<DriverChatsViewProps> = ({ currentRide, s
   }, [messages]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+          }
+        } catch (e) {}
+      }
+    }
+  }, [rideId, storageKey]);
 
-    if (rideId) {
+  useEffect(() => {
+    if (socket && rideId) {
       socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, rideId);
     }
 
@@ -75,10 +87,22 @@ export const DriverChatsView: React.FC<DriverChatsViewProps> = ({ currentRide, s
       } catch (e) {}
     };
 
-    socket.on(SOCKET_EVENTS.CHAT_NEW_MESSAGE, handleNewMessage);
+    const handleCustomWindowMsg = (e: any) => {
+      if (e.detail) {
+        handleNewMessage(e.detail);
+      }
+    };
+
+    if (socket) {
+      socket.on(SOCKET_EVENTS.CHAT_NEW_MESSAGE, handleNewMessage);
+    }
+    window.addEventListener('safar_new_chat_message', handleCustomWindowMsg);
 
     return () => {
-      socket.off(SOCKET_EVENTS.CHAT_NEW_MESSAGE, handleNewMessage);
+      if (socket) {
+        socket.off(SOCKET_EVENTS.CHAT_NEW_MESSAGE, handleNewMessage);
+      }
+      window.removeEventListener('safar_new_chat_message', handleCustomWindowMsg);
     };
   }, [socket, rideId, storageKey]);
 

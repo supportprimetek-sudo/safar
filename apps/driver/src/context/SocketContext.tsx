@@ -38,6 +38,28 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setConnectionState('POLLING_FALLBACK');
     });
 
+    socketClient.on(SOCKET_EVENTS.CHAT_NEW_MESSAGE, (msg: any) => {
+      console.log('💬 Background Chat Message Received in Driver App:', msg);
+      if (msg && msg.rideId) {
+        const storageKey = `safar_chat_${msg.rideId}`;
+        const saved = localStorage.getItem(storageKey);
+        let existing: any[] = [];
+        if (saved) {
+          try {
+            existing = JSON.parse(saved);
+          } catch (e) {}
+        }
+        if (!existing.some((m: any) => m.id === msg.id)) {
+          const updated = [...existing, msg];
+          localStorage.setItem(storageKey, JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent('safar_new_chat_message', { detail: msg }));
+          try {
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          } catch (e) {}
+        }
+      }
+    });
+
     setSocket(socketClient);
 
     return () => {
