@@ -203,11 +203,27 @@ async function requestPayout(req, res) {
         });
         if (!driverProfile)
             return res.status(404).json({ success: false, message: 'Driver profile not found' });
-        if (driverProfile.walletBalance < reqAmount) {
-            return res.status(400).json({ success: false, message: `Insufficient wallet balance. Available: ₹${driverProfile.walletBalance}` });
+        // Fetch all completed rides & payouts for accurate available balance calculation
+        const completedRides = await prisma_1.prisma.ride.findMany({
+            where: { driverId: driverProfile.id, rideStatus: 'COMPLETED' },
+        });
+        const payoutHistory = await prisma_1.prisma.payoutRequest.findMany({
+            where: { driverId: driverProfile.id },
+        });
+        const grossEarnings = completedRides.reduce((acc, r) => acc + Number(r.finalFare || r.estimatedFare || 0), 0);
+        const netEarnings = Math.round(grossEarnings * 0.85);
+        const totalPayoutsRequested = payoutHistory
+            .filter((p) => p.status !== 'REJECTED')
+            .reduce((acc, p) => acc + Number(p.amount), 0);
+        const availableBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
+        if (availableBalance < reqAmount) {
+            return res.status(400).json({
+                success: false,
+                message: `Insufficient wallet balance. Available for payout: ₹${availableBalance}`,
+            });
         }
         const cleanUpiId = upiId.trim();
-        // Create payout request and deduct from wallet
+        // Create payout request and update wallet balance
         const [payout] = await prisma_1.prisma.$transaction([
             prisma_1.prisma.payoutRequest.create({
                 data: {
@@ -221,7 +237,7 @@ async function requestPayout(req, res) {
             prisma_1.prisma.driverProfile.update({
                 where: { id: driverProfile.id },
                 data: {
-                    walletBalance: { decrement: reqAmount },
+                    walletBalance: Math.max(0, availableBalance - reqAmount),
                     upiId: cleanUpiId,
                 },
             }),
