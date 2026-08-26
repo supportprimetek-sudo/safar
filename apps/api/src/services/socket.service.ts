@@ -92,28 +92,6 @@ export function initializeSocketService(io: SocketIOServer) {
       console.log(`👑 Admin joined room admin:room`);
     });
 
-    // Real-time Ride Chat Handler
-    socket.on(SOCKET_EVENTS.CHAT_SEND_MESSAGE, async (data: { rideId: string; senderRole: 'RIDER' | 'DRIVER'; text: string; senderName?: string; timestamp?: string }) => {
-      if (!data.rideId || !data.text || !data.text.trim()) return;
-
-      const messagePayload = {
-        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        rideId: data.rideId,
-        senderRole: data.senderRole,
-        senderName: data.senderName || (data.senderRole === 'RIDER' ? 'Rider' : 'Driver'),
-        text: data.text.trim(),
-        timestamp: data.timestamp || new Date().toISOString(),
-      };
-
-      // 1. Broadcast message to ride room
-      io.to(`ride:${data.rideId}`).emit(SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
-
-      // 2. Broadcast globally across all connected sockets for 100% guaranteed mobile delivery
-      io.emit(SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
-
-      console.log(`💬 Chat message in ride:${data.rideId} from ${data.senderRole}: ${data.text}`);
-    });
-
     socket.on('disconnect', () => {
       console.log(`🔌 Socket disconnected: ${socket.id}`);
     });

@@ -5,22 +5,18 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet'
 import L from 'leaflet';
 import { QRCodeSVG } from 'qrcode.react';
 import { Ride } from '@safar/shared';
-import { MapPin, Navigation, Phone, CheckCircle, ArrowLeft, Banknote, QrCode, MessageSquare, X } from 'lucide-react';
-import { useSocket } from '../context/SocketContext';
-import { DriverChatsView } from '../components/DriverChatsView';
+import { MapPin, Navigation, Phone, CheckCircle, ArrowLeft, Banknote, QrCode } from 'lucide-react';
 
 const CARTO_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
 export const ActiveTrip: React.FC = () => {
   const { rideId } = useParams<{ rideId: string }>();
   const navigate = useNavigate();
-  const { socket } = useSocket();
 
   const [ride, setRide] = useState<Ride | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showQr, setShowQr] = useState(false);
-  const [showChatModal, setShowChatModal] = useState(false);
   const [upiPayload, setUpiPayload] = useState('');
 
   const fetchRide = async () => {
@@ -167,23 +163,13 @@ export const ActiveTrip: React.FC = () => {
             <div className="text-[10px] text-safar-textMuted font-extrabold uppercase tracking-wider">Passenger</div>
             <div className="text-base font-extrabold text-white">{ride.rider?.fullName || 'Rider Partner'}</div>
           </div>
-          <div className="flex items-center space-x-2">
-            <button
-              type="button"
-              onClick={() => setShowChatModal(true)}
-              className="w-11 h-11 rounded-2xl bg-safar-teal/20 text-safar-teal border border-safar-teal/30 flex items-center justify-center font-black shadow-lg active:scale-95 transition-all relative"
-              title="Chat with Passenger"
-            >
-              <MessageSquare className="w-5 h-5" />
-            </button>
-            <a
-              href={`tel:${ride.rider?.phone}`}
-              className="w-11 h-11 rounded-2xl bg-safar-teal text-safar-bg flex items-center justify-center font-black shadow-lg active:scale-95 transition-all"
-              title="Call Passenger"
-            >
-              <Phone className="w-5 h-5" />
-            </a>
-          </div>
+          <a
+            href={`tel:${ride.rider?.phone}`}
+            className="w-11 h-11 rounded-2xl bg-safar-teal text-safar-bg flex items-center justify-center font-black shadow-lg active:scale-95 transition-all"
+            title="Call Passenger"
+          >
+            <Phone className="w-5 h-5" />
+          </a>
         </div>
 
         {/* Action Controls based on Ride State */}
@@ -269,38 +255,6 @@ export const ActiveTrip: React.FC = () => {
             >
               OK
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Slide-Up Rapido Chat Drawer Modal inside ActiveTrip */}
-      {showChatModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-end">
-          <div className="bg-[#11151D] border-t border-white/10 rounded-t-3xl h-[88vh] flex flex-col p-4 pb-2 animate-fade-in relative">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 px-1">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-2xl bg-safar-teal/20 text-safar-teal font-black flex items-center justify-center text-lg border border-safar-teal/30">
-                  {ride.rider?.fullName?.charAt(0) || 'P'}
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-white text-base leading-tight">{ride.rider?.fullName || 'Passenger'}</h3>
-                  <p className="text-xs text-safar-teal font-bold flex items-center mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-safar-teal mr-1.5 animate-pulse" />
-                    Passenger Connected • Live Chat
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowChatModal(false)}
-                className="w-9 h-9 rounded-xl bg-safar-card border border-white/10 text-white flex items-center justify-center font-extrabold text-sm active:scale-95 transition-all"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <DriverChatsView currentRide={ride} socket={socket} />
-            </div>
           </div>
         </div>
       )}
