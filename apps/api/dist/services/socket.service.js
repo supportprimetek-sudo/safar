@@ -97,24 +97,8 @@ function initializeSocketService(io) {
             };
             // 1. Broadcast message to ride room
             io.to(`ride:${data.rideId}`).emit(shared_1.SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
-            // 2. Broadcast directly to driver & rider rooms for 100% guaranteed delivery
-            try {
-                const ride = await prisma_1.prisma.ride.findUnique({
-                    where: { id: data.rideId },
-                    select: { riderId: true, driverId: true },
-                });
-                if (ride) {
-                    if (ride.riderId) {
-                        io.to(`user:${ride.riderId}`).emit(shared_1.SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
-                    }
-                    if (ride.driverId) {
-                        io.to(`driver:${ride.driverId}`).emit(shared_1.SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
-                    }
-                }
-            }
-            catch (err) {
-                console.error('Error broadcasting direct chat message:', err);
-            }
+            // 2. Broadcast globally across all connected sockets for 100% guaranteed mobile delivery
+            io.emit(shared_1.SOCKET_EVENTS.CHAT_NEW_MESSAGE, messagePayload);
             console.log(`💬 Chat message in ride:${data.rideId} from ${data.senderRole}: ${data.text}`);
         });
         socket.on('disconnect', () => {

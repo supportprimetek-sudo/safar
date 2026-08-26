@@ -52,11 +52,15 @@ export const DriverChatsView: React.FC<DriverChatsViewProps> = ({ currentRide, s
   }, [messages]);
 
   useEffect(() => {
-    if (!socket || !rideId) return;
+    if (!socket) return;
 
-    socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, rideId);
+    if (rideId) {
+      socket.emit(SOCKET_EVENTS.JOIN_RIDE_ROOM, rideId);
+    }
 
-    const handleNewMessage = (msg: ChatMessage) => {
+    const handleNewMessage = (msg: ChatMessage & { rideId?: string }) => {
+      if (rideId && msg.rideId && msg.rideId !== rideId) return;
+
       setMessages((prev) => {
         if (prev.some((m) => m.id === msg.id)) return prev;
         const updated = [...prev, msg];
@@ -65,6 +69,10 @@ export const DriverChatsView: React.FC<DriverChatsViewProps> = ({ currentRide, s
         }
         return updated;
       });
+
+      try {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      } catch (e) {}
     };
 
     socket.on(SOCKET_EVENTS.CHAT_NEW_MESSAGE, handleNewMessage);
