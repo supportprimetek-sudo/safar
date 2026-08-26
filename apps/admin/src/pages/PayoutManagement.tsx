@@ -44,6 +44,8 @@ export const PayoutManagement: React.FC = () => {
 
   useEffect(() => {
     fetchPayouts();
+    const interval = setInterval(fetchPayouts, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleApprove = async (id: string, amount: number, driverName: string) => {

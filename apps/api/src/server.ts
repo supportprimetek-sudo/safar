@@ -129,7 +129,11 @@ app.get('/api/admin/payouts', authenticateToken, requireRole('ADMIN'), adminCont
 app.get('/api/admin/payout-requests', authenticateToken, requireRole('ADMIN'), adminController.listPayoutRequests);
 app.get('/api/admin/payout', authenticateToken, requireRole('ADMIN'), adminController.listPayoutRequests);
 app.post('/api/admin/payouts/:id/approve', authenticateToken, requireRole('ADMIN'), adminController.approvePayoutRequest);
+app.post('/api/admin/payout-requests/:id/approve', authenticateToken, requireRole('ADMIN'), adminController.approvePayoutRequest);
+app.post('/api/admin/payout/:id/approve', authenticateToken, requireRole('ADMIN'), adminController.approvePayoutRequest);
 app.post('/api/admin/payouts/:id/reject', authenticateToken, requireRole('ADMIN'), adminController.rejectPayoutRequest);
+app.post('/api/admin/payout-requests/:id/reject', authenticateToken, requireRole('ADMIN'), adminController.rejectPayoutRequest);
+app.post('/api/admin/payout/:id/reject', authenticateToken, requireRole('ADMIN'), adminController.rejectPayoutRequest);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

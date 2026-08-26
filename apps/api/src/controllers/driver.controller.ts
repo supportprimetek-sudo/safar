@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { getIO } from '../services/socket.service';
 
 export async function toggleOnline(req: AuthRequest, res: Response) {
   try {
@@ -265,29 +266,37 @@ export async function requestPayout(req: AuthRequest, res: Response) {
 
     const cleanUpiId = upiId.trim();
 
-    // Create payout request and update wallet balance
-    const [payout] = await prisma.$transaction([
-      prisma.payoutRequest.create({
-        data: {
-          driverId: driverProfile.id,
-          amount: reqAmount,
-          upiId: cleanUpiId,
-          status: 'APPROVED', // Instant settlement
-          processedAt: new Date(),
-        },
-      }),
-      prisma.driverProfile.update({
-        where: { id: driverProfile.id },
-        data: {
-          walletBalance: Math.max(0, availableBalance - reqAmount),
-          upiId: cleanUpiId,
-        },
-      }),
-    ]);
+    // Create payout request with status PENDING for Admin Review & Approval
+    const payout = await prisma.payoutRequest.create({
+      data: {
+        driverId: driverProfile.id,
+        amount: reqAmount,
+        upiId: cleanUpiId,
+        status: 'PENDING',
+      },
+    });
+
+    // Also update driver's default upiId in profile
+    await prisma.driverProfile.update({
+      where: { id: driverProfile.id },
+      data: { upiId: cleanUpiId },
+    }).catch(() => {});
+
+    // Emit Socket.IO event to Admin room so Admin App instantly shows the new payout request
+    try {
+      const io = getIO();
+      io.to('role:ADMIN').emit('PAYOUT_REQUEST_CREATED', {
+        id: payout.id,
+        amount: reqAmount,
+        upiId: cleanUpiId,
+        driverName: req.user.email,
+        status: 'PENDING',
+      });
+    } catch (e) {}
 
     return res.json({
       success: true,
-      message: `🎉 Payout of ₹${reqAmount} processed to ${cleanUpiId}`,
+      message: `🎉 Your payout request of ₹${reqAmount} to ${cleanUpiId} has been submitted for Admin approval! (Funds will be transferred within 24 hours).`,
       data: payout,
     });
   } catch (err: any) {

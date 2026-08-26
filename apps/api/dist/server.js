@@ -149,7 +149,11 @@ app.get('/api/admin/payouts', auth_1.authenticateToken, (0, auth_1.requireRole)(
 app.get('/api/admin/payout-requests', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listPayoutRequests);
 app.get('/api/admin/payout', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listPayoutRequests);
 app.post('/api/admin/payouts/:id/approve', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.approvePayoutRequest);
+app.post('/api/admin/payout-requests/:id/approve', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.approvePayoutRequest);
+app.post('/api/admin/payout/:id/approve', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.approvePayoutRequest);
 app.post('/api/admin/payouts/:id/reject', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.rejectPayoutRequest);
+app.post('/api/admin/payout-requests/:id/reject', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.rejectPayoutRequest);
+app.post('/api/admin/payout/:id/reject', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.rejectPayoutRequest);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`🚀 SAFAR API & Realtime Server running on http://localhost:${PORT}`);
