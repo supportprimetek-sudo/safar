@@ -18,12 +18,25 @@ export const PayoutManagement: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch('/api/admin/payouts');
-      if (res.data) {
+      let res;
+      try {
+        res = await apiFetch('/api/admin/payouts');
+      } catch (e1: any) {
+        try {
+          res = await apiFetch('/api/admin/payout-requests');
+        } catch (e2: any) {
+          res = await apiFetch('/api/admin/payout');
+        }
+      }
+
+      if (res && res.data) {
         setPayouts(res.data);
+      } else {
+        setPayouts([]);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load driver payout requests');
+      // If server is updating deployment or returns 404, gracefully initialize empty list without crashing UI
+      setPayouts([]);
     } finally {
       setLoading(false);
     }

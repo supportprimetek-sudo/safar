@@ -126,6 +126,8 @@ app.get('/api/admin/riders', authenticateToken, requireRole('ADMIN'), adminContr
 app.get('/api/admin/rides', authenticateToken, requireRole('ADMIN'), adminController.listAllRides);
 app.put('/api/admin/drivers/:driverId/status', authenticateToken, requireRole('ADMIN'), adminController.updateDriverStatus);
 app.get('/api/admin/payouts', authenticateToken, requireRole('ADMIN'), adminController.listPayoutRequests);
+app.get('/api/admin/payout-requests', authenticateToken, requireRole('ADMIN'), adminController.listPayoutRequests);
+app.get('/api/admin/payout', authenticateToken, requireRole('ADMIN'), adminController.listPayoutRequests);
 app.post('/api/admin/payouts/:id/approve', authenticateToken, requireRole('ADMIN'), adminController.approvePayoutRequest);
 app.post('/api/admin/payouts/:id/reject', authenticateToken, requireRole('ADMIN'), adminController.rejectPayoutRequest);
 

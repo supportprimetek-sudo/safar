@@ -146,6 +146,8 @@ app.get('/api/admin/riders', auth_1.authenticateToken, (0, auth_1.requireRole)('
 app.get('/api/admin/rides', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listAllRides);
 app.put('/api/admin/drivers/:driverId/status', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.updateDriverStatus);
 app.get('/api/admin/payouts', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listPayoutRequests);
+app.get('/api/admin/payout-requests', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listPayoutRequests);
+app.get('/api/admin/payout', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.listPayoutRequests);
 app.post('/api/admin/payouts/:id/approve', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.approvePayoutRequest);
 app.post('/api/admin/payouts/:id/reject', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.rejectPayoutRequest);
 const PORT = process.env.PORT || 5000;
