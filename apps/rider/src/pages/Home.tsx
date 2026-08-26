@@ -387,17 +387,19 @@ export const Home: React.FC = () => {
     } catch (e) {}
   };
 
-  const handleConfirmCashPayment = async () => {
+  const handleConfirmCashPayment = async (paymentMethod: 'CASH' | 'UPI' = 'CASH') => {
     if (!currentRide?.id) return;
     setLoading(true);
     try {
       await apiFetch(`/api/rides/${currentRide.id}/payment/confirm`, {
         method: 'POST',
-        body: JSON.stringify({ paymentMethod: 'CASH' }),
+        body: JSON.stringify({ paymentMethod }),
       });
       setNotification({
         title: 'Payment Confirmed',
-        message: '🎉 Cash Payment Confirmed! Safe travels with SAFAR.',
+        message: paymentMethod === 'UPI'
+          ? '🎉 Online QR Payment Confirmed! Safe travels with SAFAR.'
+          : '🎉 Cash Payment Confirmed! Safe travels with SAFAR.',
         icon: '🎉',
         onOk: resetBooking,
       });

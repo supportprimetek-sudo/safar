@@ -5,7 +5,7 @@ import { CreditCard, Banknote, QrCode, CheckCircle } from 'lucide-react';
 interface PaymentModalProps {
   amount: number;
   upiPayload?: string;
-  onConfirmCashPayment: () => void;
+  onConfirmCashPayment: (paymentMethod?: 'CASH' | 'UPI') => void;
   loading: boolean;
 }
 
@@ -70,17 +70,22 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
       {method === 'CASH' ? (
         <button
-          onClick={onConfirmCashPayment}
+          onClick={() => onConfirmCashPayment('CASH')}
           disabled={loading}
-          className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2"
+          className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-all"
         >
           <CheckCircle className="w-5 h-5" />
-          <span>{loading ? 'Confirming...' : 'I Handed Cash To Driver'}</span>
+          <span>{loading ? 'Confirming...' : '💵 I Handed Cash To Driver'}</span>
         </button>
       ) : (
-        <p className="text-xs text-safar-textMuted italic">
-          Show driver payment confirmation screen on your phone. Driver will confirm receipt.
-        </p>
+        <button
+          onClick={() => onConfirmCashPayment('UPI')}
+          disabled={loading}
+          className="w-full py-4 bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 text-safar-bg font-extrabold text-base rounded-2xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition-all"
+        >
+          <CheckCircle className="w-5 h-5" />
+          <span>{loading ? 'Confirming...' : '📲 QR / UPI Paid (Confirmed)'}</span>
+        </button>
       )}
     </div>
   );

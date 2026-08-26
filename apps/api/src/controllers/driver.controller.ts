@@ -165,8 +165,10 @@ export async function getEarnings(req: AuthRequest, res: Response) {
     // 3. Guarantee grossEarnings is at least cashEarnings + qrEarnings
     grossEarnings = Math.max(grossEarnings, cashEarnings + qrEarnings);
 
-    // 4. 85% Net Driver Share & 15% Platform Commission
-    const netEarnings = Math.round(grossEarnings * 0.85);
+    // 4. 85% Net Driver Share Breakdown
+    const netCashEarnings = Math.round(cashEarnings * 0.85);
+    const netQrEarnings = Math.round(qrEarnings * 0.85);
+    const netEarnings = netCashEarnings + netQrEarnings;
     const platformCommission = grossEarnings - netEarnings;
 
     // 5. Calculate total requested/approved payouts
@@ -174,16 +176,14 @@ export async function getEarnings(req: AuthRequest, res: Response) {
       .filter((p) => p.status !== 'REJECTED')
       .reduce((acc, p) => acc + Number(p.amount), 0);
 
-    // 6. Effective available wallet balance
-    const walletBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
+    // 6. Available Wallet Balance for Payout (Calculated ONLY from QR / Digital Pay as Cash is in-hand)
+    const walletBalance = Math.max(0, netQrEarnings - totalPayoutsRequested);
 
     // Sync DB walletBalance if needed
-    if ((driverProfile.walletBalance || 0) < walletBalance) {
-      await prisma.driverProfile.update({
-        where: { id: driverProfile.id },
-        data: { walletBalance, totalRides: Math.max(driverProfile.totalRides, completedRides.length) },
-      }).catch(() => {});
-    }
+    await prisma.driverProfile.update({
+      where: { id: driverProfile.id },
+      data: { walletBalance, totalRides: Math.max(driverProfile.totalRides, completedRides.length) },
+    }).catch(() => {});
 
     return res.json({
       success: true,
@@ -193,6 +193,8 @@ export async function getEarnings(req: AuthRequest, res: Response) {
         upiId: driverProfile.upiId || '',
         grossEarnings,
         netEarnings,
+        netQrEarnings,
+        netCashEarnings,
         cashEarnings,
         qrEarnings,
         platformCommission,
@@ -228,27 +230,36 @@ export async function requestPayout(req: AuthRequest, res: Response) {
 
     if (!driverProfile) return res.status(404).json({ success: false, message: 'Driver profile not found' });
 
-    // Fetch all completed rides & payouts for accurate available balance calculation
+    // Fetch all completed rides & payments for QR calculation
     const completedRides = await prisma.ride.findMany({
       where: { driverId: driverProfile.id, rideStatus: 'COMPLETED' },
+      include: { payment: true },
     });
 
     const payoutHistory = await prisma.payoutRequest.findMany({
       where: { driverId: driverProfile.id },
     });
 
-    const grossEarnings = completedRides.reduce((acc, r) => acc + Number(r.finalFare || r.estimatedFare || 0), 0);
-    const netEarnings = Math.round(grossEarnings * 0.85);
+    let qrEarnings = 0;
+    for (const r of completedRides) {
+      const fare = Number(r.finalFare || r.estimatedFare || r.payment?.amount || 0);
+      const pMethod = r.payment?.paymentMethod || 'CASH';
+      if (pMethod === 'QR' || pMethod === 'UPI' || pMethod === 'ONLINE') {
+        qrEarnings += fare;
+      }
+    }
+
+    const netQrEarnings = Math.round(qrEarnings * 0.85);
     const totalPayoutsRequested = payoutHistory
       .filter((p) => p.status !== 'REJECTED')
       .reduce((acc, p) => acc + Number(p.amount), 0);
 
-    const availableBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
+    const availableBalance = Math.max(0, netQrEarnings - totalPayoutsRequested);
 
     if (availableBalance < reqAmount) {
       return res.status(400).json({
         success: false,
-        message: `Insufficient wallet balance. Available for payout: ₹${availableBalance}`,
+        message: `Insufficient digital payout balance. Available QR/Digital Balance: ₹${availableBalance} (Cash trips collected in hand are excluded from payout withdrawal).`,
       });
     }
 
