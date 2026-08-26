@@ -122,6 +122,9 @@ app.get('/api/admin/drivers', authenticateToken, requireRole('ADMIN'), adminCont
 app.get('/api/admin/riders', authenticateToken, requireRole('ADMIN'), adminController.listRiders);
 app.get('/api/admin/rides', authenticateToken, requireRole('ADMIN'), adminController.listAllRides);
 app.put('/api/admin/drivers/:driverId/status', authenticateToken, requireRole('ADMIN'), adminController.updateDriverStatus);
+app.get('/api/admin/payouts', authenticateToken, requireRole('ADMIN'), adminController.listPayoutRequests);
+app.post('/api/admin/payouts/:id/approve', authenticateToken, requireRole('ADMIN'), adminController.approvePayoutRequest);
+app.post('/api/admin/payouts/:id/reject', authenticateToken, requireRole('ADMIN'), adminController.rejectPayoutRequest);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

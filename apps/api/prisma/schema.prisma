@@ -73,13 +73,14 @@ model DriverProfile {
 }
 
 model PayoutRequest {
-  id          String    @id @default(uuid())
-  driverId    String
-  amount      Float
-  upiId       String
-  status      String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt   DateTime  @default(now())
-  processedAt DateTime?
+  id              String    @id @default(uuid())
+  driverId        String
+  amount          Float
+  upiId           String
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  processedAt     DateTime?
 
   driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
 }

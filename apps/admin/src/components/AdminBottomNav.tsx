@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, FileCheck, Users, Car, Menu, X, Map, UserCheck, MapPin, Route, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, FileCheck, Users, Car, Menu, X, Map, UserCheck, MapPin, Route, DollarSign, LogOut, ShieldAlert } from 'lucide-react';
 
 export const AdminBottomNav: React.FC = () => {
   const { logout, user } = useAuth();
@@ -11,12 +11,13 @@ export const AdminBottomNav: React.FC = () => {
 
   const mainTabs = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/payouts', label: 'Payouts', icon: DollarSign },
     { to: '/kyc', label: 'KYC', icon: FileCheck },
     { to: '/drivers', label: 'Drivers', icon: Users },
-    { to: '/vehicles', label: 'Vehicles', icon: Car },
   ];
 
   const moreLinks = [
+    { to: '/vehicles', label: 'Vehicles & Fare Rules', icon: Car },
     { to: '/live-map', label: 'Live Operations Map', icon: Map },
     { to: '/riders', label: 'Rider Management', icon: UserCheck },
     { to: '/destinations', label: 'Popular Destinations', icon: MapPin },

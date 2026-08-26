@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Map, FileCheck, Car, MapPin, Users, UserCheck, Route, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Map, FileCheck, Car, MapPin, Users, UserCheck, Route, DollarSign, LogOut, ShieldAlert } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { logout, user } = useAuth();
@@ -11,6 +11,7 @@ export const Sidebar: React.FC = () => {
     { to: '/', label: 'Executive Dashboard', icon: LayoutDashboard },
     { to: '/live-map', label: 'Live Operations Map', icon: Map },
     { to: '/kyc', label: 'KYC Verification Queue', icon: FileCheck },
+    { to: '/payouts', label: 'Driver Payout Requests', icon: DollarSign },
     { to: '/vehicles', label: 'Vehicles & Fare Rules', icon: Car },
     { to: '/destinations', label: 'Popular Destinations', icon: MapPin },
     { to: '/drivers', label: 'Driver Management', icon: Users },

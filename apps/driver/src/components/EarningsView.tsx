@@ -177,12 +177,27 @@ export const EarningsView: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right space-y-0.5">
                   <span className="text-sm font-black text-safar-teal">₹{payout.amount}</span>
-                  <div className="text-[10px] text-emerald-400 font-bold flex items-center justify-end">
-                    <span>{payout.status}</span>
-                    <ArrowUpRight className="w-3 h-3 ml-0.5" />
-                  </div>
+                  {payout.status === 'PENDING' && (
+                    <div className="text-[10px] text-amber-400 font-bold flex items-center justify-end animate-pulse">
+                      <span>Pending (Transfer within 24h)</span>
+                    </div>
+                  )}
+                  {payout.status === 'APPROVED' && (
+                    <div className="text-[10px] text-emerald-400 font-bold flex items-center justify-end">
+                      <span>Approved (Transfer within 24h)</span>
+                      <ArrowUpRight className="w-3 h-3 ml-0.5" />
+                    </div>
+                  )}
+                  {payout.status === 'REJECTED' && (
+                    <div className="text-[10px] text-red-400 font-bold flex flex-col items-end">
+                      <span>Rejected</span>
+                      <span className="text-[9px] text-red-400/80 font-normal max-w-[150px] truncate" title={payout.rejectionReason || 'Insufficient valid account balance'}>
+                        {payout.rejectionReason || 'Insufficient valid fare balance'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

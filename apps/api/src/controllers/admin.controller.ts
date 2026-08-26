@@ -1,6 +1,8 @@
 import { Response } from 'express';
 import { prisma } from '../config/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { getIO } from '../services/socket.service';
+import { SOCKET_EVENTS } from '@safar/shared';
 
 export async function getDashboardStats(req: AuthRequest, res: Response) {
   try {
@@ -237,6 +239,149 @@ export async function getAnalyticsSummary(req: AuthRequest, res: Response) {
         cancelledRidesCount,
         activeDriversCount,
       },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function listPayoutRequests(req: AuthRequest, res: Response) {
+  try {
+    const payouts = await prisma.payoutRequest.findMany({
+      include: {
+        driver: {
+          include: {
+            user: { select: { id: true, fullName: true, phone: true, email: true, profileImage: true } },
+            vehicleType: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return res.json({ success: true, data: payouts });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function approvePayoutRequest(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+
+    const payout = await prisma.payoutRequest.findUnique({
+      where: { id },
+      include: {
+        driver: { include: { user: { select: { id: true, fullName: true, phone: true } } } },
+      },
+    });
+
+    if (!payout) return res.status(404).json({ success: false, message: 'Payout request not found' });
+    if (payout.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: `Payout request is already ${payout.status}` });
+    }
+
+    const updated = await prisma.$transaction([
+      prisma.payoutRequest.update({
+        where: { id },
+        data: {
+          status: 'APPROVED',
+          processedAt: new Date(),
+        },
+      }),
+      prisma.driverProfile.update({
+        where: { id: payout.driverId },
+        data: {
+          walletBalance: { decrement: payout.amount },
+          upiId: payout.upiId,
+        },
+      }),
+    ]);
+
+    try {
+      const io = getIO();
+      const message = `🎉 Payout Approved! Your payout request of ₹${payout.amount} to ${payout.upiId} has been approved and will be transferred within 24 hours.`;
+
+      io.to(`user:${payout.driver.userId}`).emit(SOCKET_EVENTS.NOTIFICATION_CREATED, {
+        title: 'Payout Approved (Transfer within 24h)',
+        message,
+        type: 'PAYOUT_APPROVED',
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: payout.driver.userId,
+          type: 'PAYOUT_APPROVED',
+          title: 'Payout Approved (Transfer within 24h)',
+          message,
+          data: JSON.stringify({ payoutId: payout.id, amount: payout.amount, transferWindow: '24 hours' }),
+        },
+      });
+    } catch (e) {}
+
+    return res.json({
+      success: true,
+      message: `Payout of ₹${payout.amount} approved! Transfer will complete within 24 hours.`,
+      data: updated[0],
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function rejectPayoutRequest(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const payout = await prisma.payoutRequest.findUnique({
+      where: { id },
+      include: {
+        driver: { include: { user: { select: { id: true, fullName: true, phone: true } } } },
+      },
+    });
+
+    if (!payout) return res.status(404).json({ success: false, message: 'Payout request not found' });
+    if (payout.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: `Payout request is already ${payout.status}` });
+    }
+
+    const rejectionReason = reason || 'Insufficient account verification / Insufficient valid fare balance';
+
+    const updated = await prisma.payoutRequest.update({
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        rejectionReason,
+        processedAt: new Date(),
+      },
+    });
+
+    try {
+      const io = getIO();
+      const message = `❌ Payout Rejected: Your payout request of ₹${payout.amount} was rejected (${rejectionReason}).`;
+
+      io.to(`user:${payout.driver.userId}`).emit(SOCKET_EVENTS.NOTIFICATION_CREATED, {
+        title: 'Payout Request Rejected',
+        message,
+        type: 'PAYOUT_REJECTED',
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: payout.driver.userId,
+          type: 'PAYOUT_REJECTED',
+          title: 'Payout Request Rejected',
+          message,
+          data: JSON.stringify({ payoutId: payout.id, amount: payout.amount, reason: rejectionReason }),
+        },
+      });
+    } catch (e) {}
+
+    return res.json({
+      success: true,
+      message: `Payout request of ₹${payout.amount} rejected. Driver notified with reason: ${rejectionReason}`,
+      data: updated,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });

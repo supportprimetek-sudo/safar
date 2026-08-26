@@ -11,7 +11,12 @@ exports.createPopularDestination = createPopularDestination;
 exports.updatePopularDestination = updatePopularDestination;
 exports.deletePopularDestination = deletePopularDestination;
 exports.getAnalyticsSummary = getAnalyticsSummary;
+exports.listPayoutRequests = listPayoutRequests;
+exports.approvePayoutRequest = approvePayoutRequest;
+exports.rejectPayoutRequest = rejectPayoutRequest;
 const prisma_1 = require("../config/prisma");
+const socket_service_1 = require("../services/socket.service");
+const shared_1 = require("@safar/shared");
 async function getDashboardStats(req, res) {
     try {
         const totalRiders = await prisma_1.prisma.user.count({ where: { role: 'RIDER' } });
@@ -232,6 +237,137 @@ async function getAnalyticsSummary(req, res) {
                 cancelledRidesCount,
                 activeDriversCount,
             },
+        });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function listPayoutRequests(req, res) {
+    try {
+        const payouts = await prisma_1.prisma.payoutRequest.findMany({
+            include: {
+                driver: {
+                    include: {
+                        user: { select: { id: true, fullName: true, phone: true, email: true, profileImage: true } },
+                        vehicleType: true,
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        return res.json({ success: true, data: payouts });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function approvePayoutRequest(req, res) {
+    try {
+        const { id } = req.params;
+        const payout = await prisma_1.prisma.payoutRequest.findUnique({
+            where: { id },
+            include: {
+                driver: { include: { user: { select: { id: true, fullName: true, phone: true } } } },
+            },
+        });
+        if (!payout)
+            return res.status(404).json({ success: false, message: 'Payout request not found' });
+        if (payout.status !== 'PENDING') {
+            return res.status(400).json({ success: false, message: `Payout request is already ${payout.status}` });
+        }
+        const updated = await prisma_1.prisma.$transaction([
+            prisma_1.prisma.payoutRequest.update({
+                where: { id },
+                data: {
+                    status: 'APPROVED',
+                    processedAt: new Date(),
+                },
+            }),
+            prisma_1.prisma.driverProfile.update({
+                where: { id: payout.driverId },
+                data: {
+                    walletBalance: { decrement: payout.amount },
+                    upiId: payout.upiId,
+                },
+            }),
+        ]);
+        try {
+            const io = (0, socket_service_1.getIO)();
+            const message = `🎉 Payout Approved! Your payout request of ₹${payout.amount} to ${payout.upiId} has been approved and will be transferred within 24 hours.`;
+            io.to(`user:${payout.driver.userId}`).emit(shared_1.SOCKET_EVENTS.NOTIFICATION_CREATED, {
+                title: 'Payout Approved (Transfer within 24h)',
+                message,
+                type: 'PAYOUT_APPROVED',
+            });
+            await prisma_1.prisma.notification.create({
+                data: {
+                    userId: payout.driver.userId,
+                    type: 'PAYOUT_APPROVED',
+                    title: 'Payout Approved (Transfer within 24h)',
+                    message,
+                    data: JSON.stringify({ payoutId: payout.id, amount: payout.amount, transferWindow: '24 hours' }),
+                },
+            });
+        }
+        catch (e) { }
+        return res.json({
+            success: true,
+            message: `Payout of ₹${payout.amount} approved! Transfer will complete within 24 hours.`,
+            data: updated[0],
+        });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function rejectPayoutRequest(req, res) {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        const payout = await prisma_1.prisma.payoutRequest.findUnique({
+            where: { id },
+            include: {
+                driver: { include: { user: { select: { id: true, fullName: true, phone: true } } } },
+            },
+        });
+        if (!payout)
+            return res.status(404).json({ success: false, message: 'Payout request not found' });
+        if (payout.status !== 'PENDING') {
+            return res.status(400).json({ success: false, message: `Payout request is already ${payout.status}` });
+        }
+        const rejectionReason = reason || 'Insufficient account verification / Insufficient valid fare balance';
+        const updated = await prisma_1.prisma.payoutRequest.update({
+            where: { id },
+            data: {
+                status: 'REJECTED',
+                rejectionReason,
+                processedAt: new Date(),
+            },
+        });
+        try {
+            const io = (0, socket_service_1.getIO)();
+            const message = `❌ Payout Rejected: Your payout request of ₹${payout.amount} was rejected (${rejectionReason}).`;
+            io.to(`user:${payout.driver.userId}`).emit(shared_1.SOCKET_EVENTS.NOTIFICATION_CREATED, {
+                title: 'Payout Request Rejected',
+                message,
+                type: 'PAYOUT_REJECTED',
+            });
+            await prisma_1.prisma.notification.create({
+                data: {
+                    userId: payout.driver.userId,
+                    type: 'PAYOUT_REJECTED',
+                    title: 'Payout Request Rejected',
+                    message,
+                    data: JSON.stringify({ payoutId: payout.id, amount: payout.amount, reason: rejectionReason }),
+                },
+            });
+        }
+        catch (e) { }
+        return res.json({
+            success: true,
+            message: `Payout request of ₹${payout.amount} rejected. Driver notified with reason: ${rejectionReason}`,
+            data: updated,
         });
     }
     catch (err) {

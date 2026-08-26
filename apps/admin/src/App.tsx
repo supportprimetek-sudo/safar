@@ -14,6 +14,7 @@ import { DestinationManagement } from './pages/DestinationManagement';
 import { DriverManagement } from './pages/DriverManagement';
 import { RiderManagement } from './pages/RiderManagement';
 import { RideManagement } from './pages/RideManagement';
+import { PayoutManagement } from './pages/PayoutManagement';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -84,6 +85,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/live-map" element={<ProtectedRoute><LiveMap /></ProtectedRoute>} />
             <Route path="/kyc" element={<ProtectedRoute><KycManagement /></ProtectedRoute>} />
+            <Route path="/payouts" element={<ProtectedRoute><PayoutManagement /></ProtectedRoute>} />
             <Route path="/vehicles" element={<ProtectedRoute><VehicleManagement /></ProtectedRoute>} />
             <Route path="/destinations" element={<ProtectedRoute><DestinationManagement /></ProtectedRoute>} />
             <Route path="/drivers" element={<ProtectedRoute><DriverManagement /></ProtectedRoute>} />
