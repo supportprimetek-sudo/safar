@@ -168,4 +168,6 @@ export declare const SOCKET_EVENTS: {
     readonly PAYMENT_CONFIRMED: "payment_confirmed";
     readonly NOTIFICATION_CREATED: "notification_created";
     readonly DRIVER_LOCATION_BROADCAST: "driver_location_broadcast";
+    readonly CHAT_SEND_MESSAGE: "chat_send_message";
+    readonly CHAT_NEW_MESSAGE: "chat_new_message";
 };

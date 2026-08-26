@@ -544,7 +544,7 @@ export const Home: React.FC = () => {
 
         {activeTab === 'places' && <PlacesView onSelectPlace={handleSelectPlaceFromTab} />}
         {activeTab === 'history' && <History />}
-        {activeTab === 'chats' && <ChatsView />}
+        {activeTab === 'chats' && <ChatsView currentRide={currentRide} socket={socket} />}
         {activeTab === 'profile' && <ProfileView />}
       </div>
 

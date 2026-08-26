@@ -264,7 +264,7 @@ export const Dashboard: React.FC = () => {
       )}
 
       {activeTab === 'earnings' && <EarningsView />}
-      {activeTab === 'chats' && <DriverChatsView />}
+      {activeTab === 'chats' && <DriverChatsView currentRide={activeRide} socket={socket} />}
       {activeTab === 'profile' && <DriverProfileView />}
 
       {/* Fixed Bottom Navigation Bar */}

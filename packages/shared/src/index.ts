@@ -201,5 +201,7 @@ export const SOCKET_EVENTS = {
   PAYMENT_REQUESTED: 'payment_requested',
   PAYMENT_CONFIRMED: 'payment_confirmed',
   NOTIFICATION_CREATED: 'notification_created',
-  DRIVER_LOCATION_BROADCAST: 'driver_location_broadcast'
+  DRIVER_LOCATION_BROADCAST: 'driver_location_broadcast',
+  CHAT_SEND_MESSAGE: 'chat_send_message',
+  CHAT_NEW_MESSAGE: 'chat_new_message'
 } as const;
