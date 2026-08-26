@@ -97,10 +97,23 @@ async function getEarnings(req, res) {
         });
         if (!driverProfile)
             return res.status(404).json({ success: false, message: 'Driver profile not found' });
-        const completedPayments = await prisma_1.prisma.payment.findMany({
+        // Fetch all completed rides for this driver
+        const completedRides = await prisma_1.prisma.ride.findMany({
             where: {
                 driverId: driverProfile.id,
-                paymentStatus: 'PAID',
+                rideStatus: 'COMPLETED',
+            },
+            include: {
+                payment: true,
+            },
+        });
+        // Fetch all payments associated with this driver or driver's rides
+        const payments = await prisma_1.prisma.payment.findMany({
+            where: {
+                OR: [
+                    { driverId: driverProfile.id },
+                    { ride: { driverId: driverProfile.id, rideStatus: 'COMPLETED' } },
+                ],
             },
         });
         const payoutHistory = await prisma_1.prisma.payoutRequest.findMany({
@@ -108,21 +121,61 @@ async function getEarnings(req, res) {
             orderBy: { createdAt: 'desc' },
             take: 20,
         });
-        const grossEarnings = completedPayments.reduce((acc, p) => acc + p.amount, 0);
-        const netEarnings = Math.round(grossEarnings * 0.85); // 85% driver share after 15% platform commission
-        const cashEarnings = completedPayments.filter((p) => p.paymentMethod === 'CASH').reduce((acc, p) => acc + p.amount, 0);
-        const qrEarnings = completedPayments.filter((p) => p.paymentMethod === 'QR').reduce((acc, p) => acc + p.amount, 0);
+        let grossEarnings = 0;
+        let cashEarnings = 0;
+        let qrEarnings = 0;
+        // 1. Calculate from completed rides
+        for (const r of completedRides) {
+            const fare = Number(r.finalFare || r.estimatedFare || 0);
+            grossEarnings += fare;
+            const pMethod = r.payment?.paymentMethod || 'CASH';
+            if (pMethod === 'QR') {
+                qrEarnings += fare;
+            }
+            else {
+                cashEarnings += fare;
+            }
+        }
+        // 2. Include any payment records with status PAID not captured in completedRides above
+        for (const p of payments) {
+            if (p.paymentStatus === 'PAID' && !completedRides.some((r) => r.id === p.rideId)) {
+                const fare = Number(p.amount || 0);
+                grossEarnings += fare;
+                if (p.paymentMethod === 'QR') {
+                    qrEarnings += fare;
+                }
+                else {
+                    cashEarnings += fare;
+                }
+            }
+        }
+        // 3. 85% Net Driver Share & 15% Platform Commission
+        const netEarnings = Math.round(grossEarnings * 0.85);
+        const platformCommission = grossEarnings - netEarnings;
+        // 4. Calculate total requested/approved payouts
+        const totalPayoutsRequested = payoutHistory
+            .filter((p) => p.status !== 'REJECTED')
+            .reduce((acc, p) => acc + Number(p.amount), 0);
+        // 5. Effective available wallet balance
+        const walletBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
+        // Sync DB walletBalance if needed
+        if ((driverProfile.walletBalance || 0) < walletBalance) {
+            await prisma_1.prisma.driverProfile.update({
+                where: { id: driverProfile.id },
+                data: { walletBalance, totalRides: Math.max(driverProfile.totalRides, completedRides.length) },
+            }).catch(() => { });
+        }
         return res.json({
             success: true,
             data: {
-                totalRides: driverProfile.totalRides,
-                walletBalance: driverProfile.walletBalance || 0,
+                totalRides: Math.max(driverProfile.totalRides, completedRides.length),
+                walletBalance,
                 upiId: driverProfile.upiId || '',
                 grossEarnings,
                 netEarnings,
                 cashEarnings,
                 qrEarnings,
-                platformCommission: grossEarnings - netEarnings,
+                platformCommission,
                 rating: driverProfile.rating,
                 payoutHistory,
             },

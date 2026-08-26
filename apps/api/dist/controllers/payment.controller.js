@@ -50,6 +50,7 @@ async function confirmPayment(req, res) {
         const payment = await prisma_1.prisma.payment.upsert({
             where: { rideId: id },
             update: {
+                driverId: ride.driverId || undefined,
                 paymentMethod: paymentMethod || 'CASH',
                 paymentStatus: 'PAID',
                 confirmedBy: req.user?.id || 'RIDER',
