@@ -94,6 +94,7 @@ app.put('/api/admin/popular-destinations/:id', authenticateToken, requireRole('A
 app.delete('/api/admin/popular-destinations/:id', authenticateToken, requireRole('ADMIN'), adminController.deletePopularDestination);
 
 // --- Ride Routes ---
+app.get('/api/rides/track/:id', rideController.getPublicRideTrack); // Public Live Tracking
 app.post('/api/rides/estimate-fare', rideController.estimateFare);
 app.post('/api/rides', authenticateToken, rideController.createRide);
 app.get('/api/rides/rider/history', authenticateToken, rideController.getRiderHistory);
@@ -106,6 +107,7 @@ app.post('/api/rides/:id/arrived', authenticateToken, rideController.driverArriv
 app.post('/api/rides/:id/start', authenticateToken, rideController.startRide);
 app.post('/api/rides/:id/complete', authenticateToken, rideController.completeRide);
 app.post('/api/rides/:id/cancel', authenticateToken, rideController.cancelRide);
+app.post('/api/rides/:id/sos', authenticateToken, rideController.triggerSosEmergency);
 
 // --- Payment Routes ---
 app.get('/api/rides/:id/payment', authenticateToken, paymentController.getPaymentInfo);

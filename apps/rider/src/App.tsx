@@ -9,6 +9,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { History } from './pages/History';
+import { PublicRideTracker } from './pages/PublicRideTracker';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -43,6 +44,7 @@ export const AppContent: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/track/:rideId" element={<PublicRideTracker />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route

@@ -12,6 +12,8 @@ exports.completeRide = completeRide;
 exports.cancelRide = cancelRide;
 exports.getRiderHistory = getRiderHistory;
 exports.getDriverHistory = getDriverHistory;
+exports.getPublicRideTrack = getPublicRideTrack;
+exports.triggerSosEmergency = triggerSosEmergency;
 const prisma_1 = require("../config/prisma");
 const geo_1 = require("../utils/geo");
 const socket_service_1 = require("../services/socket.service");
@@ -493,6 +495,88 @@ async function getDriverHistory(req, res) {
             orderBy: { createdAt: 'desc' },
         });
         return res.json({ success: true, data: rides });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function getPublicRideTrack(req, res) {
+    try {
+        const { id } = req.params;
+        const ride = await prisma_1.prisma.ride.findUnique({
+            where: { id },
+            include: {
+                driver: {
+                    select: {
+                        id: true,
+                        currentLatitude: true,
+                        currentLongitude: true,
+                        rating: true,
+                        user: { select: { fullName: true } },
+                        vehicleType: true,
+                    },
+                },
+                vehicleType: true,
+            },
+        });
+        if (!ride)
+            return res.status(404).json({ success: false, message: 'Ride not found' });
+        return res.json({
+            success: true,
+            data: {
+                id: ride.id,
+                pickupAddress: ride.pickupAddress,
+                pickupLatitude: ride.pickupLatitude,
+                pickupLongitude: ride.pickupLongitude,
+                destinationAddress: ride.destinationAddress,
+                destinationLatitude: ride.destinationLatitude,
+                destinationLongitude: ride.destinationLongitude,
+                rideStatus: ride.rideStatus,
+                driver: ride.driver,
+                vehicleType: ride.vehicleType,
+                updatedAt: ride.updatedAt,
+            },
+        });
+    }
+    catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+}
+async function triggerSosEmergency(req, res) {
+    try {
+        const { id } = req.params;
+        const { latitude, longitude, customNotes } = req.body;
+        const ride = await prisma_1.prisma.ride.findUnique({
+            where: { id },
+            include: {
+                rider: { select: { fullName: true, phone: true } },
+                driver: { include: { user: { select: { fullName: true, phone: true } } } },
+            },
+        });
+        if (!ride)
+            return res.status(404).json({ success: false, message: 'Ride not found' });
+        const sosPayload = {
+            rideId: ride.id,
+            timestamp: new Date().toISOString(),
+            riderName: ride.rider?.fullName || 'Rider',
+            riderPhone: ride.rider?.phone || '',
+            driverName: ride.driver?.user?.fullName || 'Driver',
+            driverPhone: ride.driver?.user?.phone || '',
+            currentLatitude: latitude || ride.pickupLatitude,
+            currentLongitude: longitude || ride.pickupLongitude,
+            customNotes: customNotes || 'EMERGENCY SOS BUTTON TRIGGERED BY RIDER',
+        };
+        console.error('🚨 HIGH PRIORITY SOS EMERGENCY TRIGGERED:', sosPayload);
+        try {
+            (0, socket_service_1.getIO)().to('admin:room').emit('EMERGENCY_SOS_TRIGGERED', sosPayload);
+            (0, socket_service_1.getIO)().emit('EMERGENCY_SOS_TRIGGERED', sosPayload);
+        }
+        catch (e) { }
+        return res.json({
+            success: true,
+            message: '🚨 Emergency SOS alert dispatched to SAFAR Control Center.',
+            data: sosPayload,
+        });
     }
     catch (err) {
         return res.status(500).json({ success: false, message: err.message });

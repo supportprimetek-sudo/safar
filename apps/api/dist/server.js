@@ -116,6 +116,7 @@ app.post('/api/admin/popular-destinations', auth_1.authenticateToken, (0, auth_1
 app.put('/api/admin/popular-destinations/:id', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.updatePopularDestination);
 app.delete('/api/admin/popular-destinations/:id', auth_1.authenticateToken, (0, auth_1.requireRole)('ADMIN'), adminController.deletePopularDestination);
 // --- Ride Routes ---
+app.get('/api/rides/track/:id', rideController.getPublicRideTrack); // Public Live Tracking
 app.post('/api/rides/estimate-fare', rideController.estimateFare);
 app.post('/api/rides', auth_1.authenticateToken, rideController.createRide);
 app.get('/api/rides/rider/history', auth_1.authenticateToken, rideController.getRiderHistory);
@@ -128,6 +129,7 @@ app.post('/api/rides/:id/arrived', auth_1.authenticateToken, rideController.driv
 app.post('/api/rides/:id/start', auth_1.authenticateToken, rideController.startRide);
 app.post('/api/rides/:id/complete', auth_1.authenticateToken, rideController.completeRide);
 app.post('/api/rides/:id/cancel', auth_1.authenticateToken, rideController.cancelRide);
+app.post('/api/rides/:id/sos', auth_1.authenticateToken, rideController.triggerSosEmergency);
 // --- Payment Routes ---
 app.get('/api/rides/:id/payment', auth_1.authenticateToken, paymentController.getPaymentInfo);
 app.post('/api/rides/:id/payment/confirm', auth_1.authenticateToken, paymentController.confirmPayment);

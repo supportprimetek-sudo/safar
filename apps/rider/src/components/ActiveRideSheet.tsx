@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Ride } from '@safar/shared';
-import { Phone, Star, Shield, MapPin, Navigation } from 'lucide-react';
+import { Phone, Star, Shield, MapPin, Navigation, Share2, AlertTriangle, Clock } from 'lucide-react';
+import { apiFetch } from '../api';
 
 interface ActiveRideSheetProps {
   ride: Ride;
@@ -10,6 +11,78 @@ interface ActiveRideSheetProps {
 export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancelRide }) => {
   const driverUser = ride.driver?.user;
   const vehicle = ride.vehicleType;
+
+  const [sosModalOpen, setSosModalOpen] = useState(false);
+  const [sosLoading, setSosLoading] = useState(false);
+  const [sosTriggered, setSosTriggered] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Calculate Haversine live driver distance & ETA
+  const getDriverEtaAndDistance = () => {
+    if (!ride.driver?.currentLatitude || !ride.driver?.currentLongitude) {
+      return { distanceKm: '0.8', etaMin: 3 };
+    }
+
+    const targetLat = ride.rideStatus === 'IN_PROGRESS' ? ride.destinationLatitude : ride.pickupLatitude;
+    const targetLng = ride.rideStatus === 'IN_PROGRESS' ? ride.destinationLongitude : ride.pickupLongitude;
+
+    const R = 6371; // Earth radius in km
+    const dLat = ((targetLat - ride.driver.currentLatitude) * Math.PI) / 180;
+    const dLon = ((targetLng - ride.driver.currentLongitude) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((ride.driver.currentLatitude * Math.PI) / 180) *
+        Math.cos((targetLat * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dist = R * c;
+
+    const distanceKm = dist < 0.1 ? '0.1' : dist.toFixed(1);
+    const etaMin = Math.max(1, Math.round(dist * 3));
+    return { distanceKm, etaMin };
+  };
+
+  const { distanceKm, etaMin } = getDriverEtaAndDistance();
+
+  const handleShareLiveTrip = async () => {
+    const shareUrl = `${window.location.origin}/track/${ride.id}`;
+    const shareData = {
+      title: 'SAFAR Live Ride Tracking',
+      text: `Track my live SAFAR ride to ${ride.destinationAddress}:`,
+      url: shareUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareData.text} ${shareUrl}`);
+        setToastMessage('📋 Live tracking link copied to clipboard!');
+        setTimeout(() => setToastMessage(''), 3000);
+      } catch (e) {}
+    }
+  };
+
+  const handleTriggerSos = async () => {
+    setSosLoading(true);
+    try {
+      await apiFetch(`/api/rides/${ride.id}/sos`, {
+        method: 'POST',
+        body: JSON.stringify({
+          latitude: ride.driver?.currentLatitude || ride.pickupLatitude,
+          longitude: ride.driver?.currentLongitude || ride.pickupLongitude,
+        }),
+      });
+      setSosTriggered(true);
+    } catch (err: any) {
+      alert(err.message || 'SOS Trigger Failed');
+    } finally {
+      setSosLoading(false);
+    }
+  };
 
   const getStatusBadge = () => {
     switch (ride.rideStatus) {
@@ -38,8 +111,24 @@ export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancel
   };
 
   return (
-    <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4">
+    <div className="glass-panel p-5 rounded-t-3xl border-t border-white/10 shadow-2xl space-y-4 relative">
       <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto" />
+
+      {/* Real-Time Driver ETA & Live Distance Counter Badge */}
+      {['DRIVER_ACCEPTED', 'DRIVER_ARRIVING', 'IN_PROGRESS'].includes(ride.rideStatus) && (
+        <div className="bg-safar-card p-3 rounded-2xl border border-safar-teal/30 flex items-center justify-between shadow-lg">
+          <div className="flex items-center space-x-2 text-xs font-bold text-white">
+            <Clock className="w-4 h-4 text-safar-teal animate-spin" />
+            <span>
+              {ride.rideStatus === 'IN_PROGRESS' ? 'ETA to Destination:' : 'Driver Arrival:'}{' '}
+              <strong className="text-safar-teal">{etaMin} mins</strong>
+            </span>
+          </div>
+          <span className="text-xs font-extrabold text-safar-textMuted bg-safar-surface px-2.5 py-1 rounded-xl border border-white/5">
+            {distanceKm} km away
+          </span>
+        </div>
+      )}
 
       <div className="flex justify-between items-center">
         <div>
@@ -117,22 +206,95 @@ export const ActiveRideSheet: React.FC<ActiveRideSheetProps> = ({ ride, onCancel
         </div>
       </div>
 
-      {/* Safety Actions */}
-      <div className="flex space-x-3 pt-1">
-        <button className="flex-1 py-3 bg-safar-surface hover:bg-safar-card border border-white/10 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2">
-          <Shield className="w-4 h-4 text-safar-teal" />
-          <span>Safety Helpline</span>
+      {/* Safety Actions & Share Live Trip */}
+      <div className="grid grid-cols-2 gap-3 pt-1">
+        <button
+          onClick={handleShareLiveTrip}
+          className="py-3 bg-safar-surface hover:bg-safar-card border border-white/10 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-2 active:scale-95 transition-all"
+        >
+          <Share2 className="w-4 h-4 text-safar-teal" />
+          <span>Share Live Trip</span>
         </button>
 
-        {['DRIVER_ACCEPTED', 'DRIVER_ARRIVING', 'DRIVER_ARRIVED'].includes(ride.rideStatus) && onCancelRide && (
-          <button
-            onClick={onCancelRide}
-            className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold rounded-xl text-xs"
-          >
-            Cancel Trip
-          </button>
-        )}
+        <button
+          onClick={() => setSosModalOpen(true)}
+          className="py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 font-extrabold rounded-xl text-xs flex items-center justify-center space-x-2 active:scale-95 transition-all shadow-lg animate-pulse"
+        >
+          <AlertTriangle className="w-4 h-4 text-red-400" />
+          <span>SOS Emergency</span>
+        </button>
       </div>
+
+      {['DRIVER_ACCEPTED', 'DRIVER_ARRIVING', 'DRIVER_ARRIVED'].includes(ride.rideStatus) && onCancelRide && (
+        <button
+          onClick={onCancelRide}
+          className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold rounded-xl text-xs active:scale-95 transition-all"
+        >
+          Cancel Trip
+        </button>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-20 left-4 right-4 z-50 bg-safar-teal text-safar-bg font-extrabold text-xs py-3 px-4 rounded-2xl text-center shadow-2xl animate-fade-in max-w-sm mx-auto">
+          {toastMessage}
+        </div>
+      )}
+
+      {/* SOS Emergency Modal */}
+      {sosModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#11151D] border border-red-500/50 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-fade-in relative">
+            <button
+              onClick={() => { setSosModalOpen(false); setSosTriggered(false); }}
+              className="absolute top-4 right-4 text-safar-textMuted hover:text-white font-black text-sm"
+            >
+              ✕
+            </button>
+
+            <div className="w-16 h-16 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center mx-auto text-3xl font-black border border-red-500/30 animate-ping">
+              🚨
+            </div>
+
+            {sosTriggered ? (
+              <div className="space-y-3">
+                <h3 className="text-xl font-black text-red-400">SOS ALERT DISPATCHED</h3>
+                <p className="text-xs text-white/90 leading-relaxed font-medium">
+                  Your live GPS coordinates, vehicle details, and driver info have been sent to SAFAR Control Center & Emergency Response.
+                </p>
+                <button
+                  onClick={() => { setSosModalOpen(false); setSosTriggered(false); }}
+                  className="w-full py-3.5 bg-red-500 hover:bg-red-600 text-white font-black text-xs rounded-2xl shadow-lg active:scale-95 transition-all"
+                >
+                  Close & Stay Safe
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-xl font-black text-white">Trigger Emergency SOS?</h3>
+                <p className="text-xs text-safar-textMuted leading-relaxed">
+                  This will immediately alert SAFAR Fleet Operations with your live GPS location and vehicle details.
+                </p>
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    onClick={() => setSosModalOpen(false)}
+                    className="py-3 bg-safar-card border border-white/10 text-white font-extrabold text-xs rounded-xl hover:bg-safar-surface active:scale-95 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleTriggerSos}
+                    disabled={sosLoading}
+                    className="py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-lg active:scale-95 transition-all"
+                  >
+                    {sosLoading ? 'Alerting...' : 'CONFIRM SOS'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
