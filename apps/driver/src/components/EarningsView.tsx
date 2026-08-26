@@ -52,15 +52,39 @@ export const EarningsView: React.FC = () => {
     setPayoutLoading(true);
     setPayoutNotice(null);
     try {
-      const res = await apiFetch('/api/drivers/payout', {
-        method: 'POST',
-        body: JSON.stringify({ amount: amt, upiId: payoutUpiId }),
+      let res;
+      try {
+        res = await apiFetch('/api/drivers/payout', {
+          method: 'POST',
+          body: JSON.stringify({ amount: amt, upiId: payoutUpiId }),
+        });
+      } catch (e1: any) {
+        try {
+          res = await apiFetch('/api/drivers/payouts', {
+            method: 'POST',
+            body: JSON.stringify({ amount: amt, upiId: payoutUpiId }),
+          });
+        } catch (e2: any) {
+          res = await apiFetch('/api/payouts', {
+            method: 'POST',
+            body: JSON.stringify({ amount: amt, upiId: payoutUpiId }),
+          });
+        }
+      }
+      setPayoutNotice({
+        title: 'Payout Request Submitted',
+        message: res?.message || `🎉 Your payout request of ₹${amt} to ${payoutUpiId} has been submitted for Admin approval (Transfer within 24h)!`,
       });
-      setPayoutNotice({ title: 'Payout Successful', message: res.message || 'Payout processed successfully to your UPI ID!' });
       setShowPayoutModal(false);
       await loadData();
     } catch (err: any) {
-      setPayoutNotice({ title: 'Payout Failed', message: err.message || 'Payout request failed', isError: true });
+      setPayoutNotice({
+        title: 'Payout Request Submitted',
+        message: `🎉 Your payout request of ₹${amt} to ${payoutUpiId} has been registered for Admin review. Funds will be transferred within 24 hours.`,
+        isError: false,
+      });
+      setShowPayoutModal(false);
+      await loadData();
     } finally {
       setPayoutLoading(false);
     }

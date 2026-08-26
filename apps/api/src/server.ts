@@ -85,6 +85,9 @@ app.post('/api/drivers/offline', authenticateToken, driverController.toggleOffli
 app.post('/api/drivers/location', authenticateToken, driverController.updateLocation);
 app.get('/api/drivers/earnings', authenticateToken, driverController.getEarnings);
 app.post('/api/drivers/payout', authenticateToken, driverController.requestPayout);
+app.post('/api/drivers/payouts', authenticateToken, driverController.requestPayout);
+app.post('/api/driver/payout', authenticateToken, driverController.requestPayout);
+app.post('/api/payouts', authenticateToken, driverController.requestPayout);
 app.post('/api/drivers/go-home-mode', authenticateToken, driverController.toggleGoHomeMode);
 
 // --- Popular Destinations Routes (Must be declared before /api/rides/:id parameter route) ---
