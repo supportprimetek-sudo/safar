@@ -13,6 +13,7 @@ import { ProfileView } from '../components/ProfileView';
 import { History } from './History';
 import { FareEstimate, Ride, SOCKET_EVENTS } from '@safar/shared';
 import { Search, MapPin, Navigation, Crosshair, Loader2, Check, ArrowLeft, X } from 'lucide-react';
+import { initNativeNotifications, triggerNativeNotification } from '../utils/notifications';
 
 export const Home: React.FC = () => {
   const { user } = useAuth();
@@ -282,6 +283,11 @@ export const Home: React.FC = () => {
     setStep('SEARCH_LOCATION');
   };
 
+  // Initialize native notifications on mount
+  useEffect(() => {
+    initNativeNotifications();
+  }, []);
+
   // Socket Realtime Listeners
   useEffect(() => {
     if (!socket) return;
@@ -293,14 +299,17 @@ export const Home: React.FC = () => {
       }
       setStep('ACTIVE_RIDE');
       setActiveTab('home');
+      triggerNativeNotification('🚕 Driver Assigned!', `${payload.driver?.user?.fullName || 'Your driver'} accepted your ride request.`);
     };
 
     const onDriverArrived = () => {
       setCurrentRide((prev) => (prev ? { ...prev, rideStatus: 'DRIVER_ARRIVED' } : prev));
+      triggerNativeNotification('📍 Driver Has Arrived!', 'Your driver has arrived at your pickup location.');
     };
 
     const onRideStarted = () => {
       setCurrentRide((prev) => (prev ? { ...prev, rideStatus: 'IN_PROGRESS' } : prev));
+      triggerNativeNotification('🚗 Trip Started', 'Your SAFAR ride is now in progress.');
     };
 
     const onRideLocation = (payload: { latitude: number; longitude: number }) => {
@@ -312,6 +321,7 @@ export const Home: React.FC = () => {
       setStep('PAYMENT');
       setActiveTab('home');
       fetchPaymentInfo();
+      triggerNativeNotification('🏁 Trip Completed!', `Your SAFAR trip has ended safely. Fare: ₹${payload.finalFare}`);
     };
 
     const onPaymentConfirmed = () => {

@@ -10,7 +10,7 @@ import { DriverChatsView } from '../components/DriverChatsView';
 import { DriverProfileView } from '../components/DriverProfileView';
 import { SOCKET_EVENTS } from '@safar/shared';
 import { Power, DollarSign, Award, Car, LogOut, AlertCircle, Navigation } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { initNativeNotifications, triggerNativeNotification } from '../utils/notifications';
 
 export const Dashboard: React.FC = () => {
   const { user, refreshUser, logout } = useAuth();
@@ -105,6 +105,11 @@ export const Dashboard: React.FC = () => {
     };
   }, [isOnline, driver?.currentLatitude, driver?.currentLongitude, activeRide?.id]);
 
+  // Initialize native notifications on mount
+  useEffect(() => {
+    initNativeNotifications();
+  }, []);
+
   // Socket Listeners for Ride Requests
   useEffect(() => {
     if (!socket) return;
@@ -113,6 +118,7 @@ export const Dashboard: React.FC = () => {
       console.log('⚡ Driver Socket: Ride Request Received', payload);
       setIncomingRequest(payload);
       setActiveTab('dashboard');
+      triggerNativeNotification('🚗 NEW SAFAR RIDE REQUEST!', `Fare: ₹${payload.estimatedFare} • Distance: ${payload.distanceKm} km`);
     };
 
     socket.on(SOCKET_EVENTS.RIDE_REQUEST_RECEIVED, onRequestReceived);
