@@ -98,9 +98,12 @@ export const EarningsView: React.FC = () => {
         });
       }
     } catch (err: any) {
+      const is404 = err.message && err.message.includes('404');
       setPayoutNotice({
-        title: 'Network Error',
-        message: err.message || 'Unable to connect to SAFAR servers. Please check your internet connection.',
+        title: is404 ? 'Server Synchronizing' : 'Payout Submission Error',
+        message: is404
+          ? 'Payout service is deploying updates. Please retry your request in 1 minute.'
+          : err.message || 'Unable to connect to SAFAR servers. Please check your internet connection.',
         isError: true,
       });
     } finally {
