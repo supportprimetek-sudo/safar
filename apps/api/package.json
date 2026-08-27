@@ -7,7 +7,7 @@
     "dev": "prisma db push --schema=prisma/schema.sqlite.prisma && tsx watch src/server.ts",
     "dev:sqlite": "prisma db push --schema=prisma/schema.sqlite.prisma && tsx prisma/seed.ts && tsx watch src/server.ts",
     "build": "npx prisma generate && tsc",
-    "start": "npx prisma generate && tsc && npx prisma db push --accept-data-loss && tsx src/server.ts",
+    "start": "npx prisma generate && tsc && npx prisma db push --accept-data-loss && node dist/server.js",
     "start:dist": "node dist/server.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -22,7 +22,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "tsx": "^4.9.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -32,7 +33,6 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.12.7",
     "prisma": "^5.13.0",
-    "tsx": "^4.9.3",
     "typescript": "^5.4.5"
   }
 }
