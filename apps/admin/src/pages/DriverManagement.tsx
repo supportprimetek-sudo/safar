@@ -46,6 +46,7 @@ export const DriverManagement: React.FC = () => {
           <thead className="bg-safar-surface text-safar-textMuted uppercase font-extrabold border-b border-white/5">
             <tr>
               <th className="p-4">Driver</th>
+              <th className="p-4">Payout UPI ID</th>
               <th className="p-4">Vehicle Category</th>
               <th className="p-4">KYC Status</th>
               <th className="p-4">Account Status</th>
@@ -61,6 +62,15 @@ export const DriverManagement: React.FC = () => {
                   <div className="font-bold text-white text-sm">{d.user?.fullName}</div>
                   <div className="text-safar-textMuted">{d.user?.email}</div>
                   <div className="text-safar-textMuted">{d.phone}</div>
+                </td>
+                <td className="p-4">
+                  {d.upiId ? (
+                    <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-xs font-mono inline-flex items-center space-x-1">
+                      💳 {d.upiId}
+                    </span>
+                  ) : (
+                    <span className="text-safar-textMuted italic text-xs">Pending Onboarding</span>
+                  )}
                 </td>
                 <td className="p-4 font-bold text-safar-teal">{d.vehicleType?.name || 'Unassigned'}</td>
                 <td className="p-4">
