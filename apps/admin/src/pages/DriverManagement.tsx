@@ -64,12 +64,12 @@ export const DriverManagement: React.FC = () => {
                   <div className="text-safar-textMuted">{d.phone}</div>
                 </td>
                 <td className="p-4">
-                  {d.upiId ? (
-                    <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-xs font-mono inline-flex items-center space-x-1">
-                      💳 {d.upiId}
+                  {(d.upiId || d.user?.driverProfile?.upiId) ? (
+                    <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-xs font-mono inline-flex items-center space-x-1 shadow-sm">
+                      💳 {d.upiId || d.user?.driverProfile?.upiId}
                     </span>
                   ) : (
-                    <span className="text-safar-textMuted italic text-xs">Pending Onboarding</span>
+                    <span className="text-yellow-400/80 italic text-xs font-semibold">⚠️ Pending Onboarding</span>
                   )}
                 </td>
                 <td className="p-4 font-bold text-safar-teal">{d.vehicleType?.name || 'Unassigned'}</td>

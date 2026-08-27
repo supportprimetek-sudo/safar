@@ -66,18 +66,34 @@ export async function register(req: Request, res: Response) {
       expiresIn: '7d',
     });
 
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        fullName: true,
+        phone: true,
+        profileImage: true,
+        status: true,
+        isVerified: true,
+        createdAt: true,
+        riderProfile: true,
+        driverProfile: {
+          include: {
+            vehicleType: true,
+            kycDocuments: true,
+          },
+        },
+      },
+    });
+
     return res.status(201).json({
       success: true,
       message: 'Account created successfully',
       data: {
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          fullName: user.fullName,
-          phone: user.phone,
-        },
+        user: fullUser,
       },
     });
   } catch (err: any) {
@@ -211,7 +227,29 @@ export async function updateProfile(req: AuthRequest, res: Response) {
       }).catch(() => {});
     }
 
-    return res.json({ success: true, message: 'Profile updated successfully', data: updatedUser });
+    const fullUser = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        fullName: true,
+        phone: true,
+        profileImage: true,
+        status: true,
+        isVerified: true,
+        createdAt: true,
+        riderProfile: true,
+        driverProfile: {
+          include: {
+            vehicleType: true,
+            kycDocuments: true,
+          },
+        },
+      },
+    });
+
+    return res.json({ success: true, message: 'Profile updated successfully', data: fullUser });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });
   }

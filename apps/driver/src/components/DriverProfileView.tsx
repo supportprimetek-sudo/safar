@@ -1,13 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Car, Phone, ShieldCheck, CreditCard, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
+import { apiFetch } from '../api';
+import { Car, Phone, ShieldCheck, CreditCard, LogOut, CheckCircle2, AlertCircle, Edit2, Check, X } from 'lucide-react';
 
 export const DriverProfileView: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const driver = user?.driverProfile;
 
+  const [isEditingUpi, setIsEditingUpi] = useState(false);
+  const [upiInput, setUpiInput] = useState(driver?.upiId || '');
+  const [savingUpi, setSavingUpi] = useState(false);
+  const [upiMessage, setUpiMessage] = useState<string | null>(null);
+
   const isKycApproved = driver?.kycStatus === 'APPROVED' && driver?.driverStatus === 'APPROVED';
-  const registeredUpi = driver?.upiId || 'Registered during onboarding';
+  const registeredUpi = driver?.upiId || 'Not set yet';
+
+  const handleUpdateUpi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!upiInput || !upiInput.includes('@')) {
+      setUpiMessage('❌ Please enter a valid UPI ID (e.g. 9876543210@paytm)');
+      return;
+    }
+
+    setSavingUpi(true);
+    setUpiMessage(null);
+    try {
+      await apiFetch('/api/auth/profile', {
+        method: 'PUT',
+        body: JSON.stringify({ upiId: upiInput.trim() }),
+      });
+      await refreshUser();
+      setIsEditingUpi(false);
+      setUpiMessage('✅ Payout UPI ID updated successfully!');
+      setTimeout(() => setUpiMessage(null), 3000);
+    } catch (err: any) {
+      setUpiMessage(err.message || '❌ Failed to update Payout UPI ID');
+    } finally {
+      setSavingUpi(false);
+    }
+  };
 
   return (
     <div className="w-full bg-safar-bg p-4 pt-2 pb-[max(7.5rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5">
@@ -44,8 +75,8 @@ export const DriverProfileView: React.FC = () => {
         </div>
       </div>
 
-      {/* Auto-Onboarded Payout Bank Account (UPI) Display Card */}
-      <div className="bg-gradient-to-br from-[#1A2332] to-[#11151D] p-5 rounded-3xl border border-safar-teal/40 shadow-xl space-y-2">
+      {/* Onboarded Payout Bank Account (UPI) Display & Quick Edit Card */}
+      <div className="bg-gradient-to-br from-[#1A2332] to-[#11151D] p-5 rounded-3xl border border-safar-teal/40 shadow-xl space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-safar-teal/20 text-safar-teal flex items-center justify-center border border-safar-teal/30">
@@ -53,13 +84,50 @@ export const DriverProfileView: React.FC = () => {
             </div>
             <div>
               <h3 className="text-xs font-black uppercase text-safar-textMuted tracking-wider">Onboarded Payout UPI Account</h3>
-              <div className="text-sm font-black text-white font-mono mt-0.5">{registeredUpi}</div>
+              <div className="text-sm font-black text-white font-mono mt-0.5">
+                {registeredUpi}
+              </div>
             </div>
           </div>
-          <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-[10px]">
-            Verified
-          </span>
+
+          <button
+            onClick={() => {
+              setUpiInput(driver?.upiId || '');
+              setIsEditingUpi(!isEditingUpi);
+            }}
+            className="px-3 py-1.5 bg-safar-teal/20 hover:bg-safar-teal/30 text-safar-teal border border-safar-teal/30 rounded-xl font-bold text-xs flex items-center space-x-1 active:scale-95 transition-all"
+          >
+            <Edit2 className="w-3.5 h-3.5 mr-1" />
+            <span>{isEditingUpi ? 'Close' : 'Update'}</span>
+          </button>
         </div>
+
+        {isEditingUpi && (
+          <form onSubmit={handleUpdateUpi} className="pt-2 border-t border-white/10 space-y-2">
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                required
+                value={upiInput}
+                onChange={(e) => setUpiInput(e.target.value)}
+                placeholder="e.g. 9876543210@paytm or name@upi"
+                className="flex-1 py-2.5 px-3.5 bg-safar-surface border border-safar-teal/40 rounded-xl text-white font-bold text-xs focus:outline-none focus:border-safar-teal"
+              />
+              <button
+                type="submit"
+                disabled={savingUpi}
+                className="py-2.5 px-4 bg-safar-teal text-safar-bg font-black text-xs rounded-xl flex items-center space-x-1 active:scale-95"
+              >
+                {savingUpi ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {upiMessage && (
+          <div className="text-xs font-bold pt-1">{upiMessage}</div>
+        )}
+
         <p className="text-[11px] text-safar-textMuted font-medium pt-1 border-t border-white/5">
           🗓️ Monthly net earnings automatically transfer to this account on the 1st & 2nd of every month.
         </p>
@@ -103,7 +171,7 @@ export const DriverProfileView: React.FC = () => {
 
       <div className="text-center pt-2">
         <span className="px-3 py-1 bg-safar-surface border border-safar-teal/30 text-safar-teal text-[10px] font-black rounded-full uppercase tracking-wider">
-          SAFAR Partner v1.0.102 (Build 102)
+          SAFAR Partner v1.0.104 (Build 104)
         </span>
       </div>
     </div>
