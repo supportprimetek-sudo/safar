@@ -189,7 +189,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-safar-bg pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto px-3 sm:px-4">
+    <div className="min-h-screen overflow-y-auto bg-safar-bg pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto px-3 sm:px-4 rapido-scroll-container">
       {/* Sticky Frozen Opaque Top Header */}
       <div className="sticky top-0 z-30 pt-[max(2.5rem,env(safe-area-inset-top,32px))] pb-3 bg-[#11151D] border-b border-white/10 -mx-3 px-3 sm:-mx-4 sm:px-4 mb-4">
         <div className="flex justify-between items-center bg-safar-card p-3.5 rounded-3xl border border-white/10 shadow-lg">

@@ -1,36 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../api';
-import { Car, Phone, ShieldCheck, CreditCard, LogOut, CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { Car, Phone, ShieldCheck, CreditCard, LogOut, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const DriverProfileView: React.FC = () => {
-  const { user, logout, refreshProfile } = useAuth();
+  const { user, logout } = useAuth();
   const driver = user?.driverProfile;
 
-  const [upiId, setUpiId] = useState(driver?.upiId || '');
-  const [saving, setSaving] = useState(false);
-  const [saveNotice, setSaveNotice] = useState<string | null>(null);
-
   const isKycApproved = driver?.kycStatus === 'APPROVED' && driver?.driverStatus === 'APPROVED';
-
-  const handleSaveUpi = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setSaveNotice(null);
-    try {
-      await apiFetch('/api/auth/profile', {
-        method: 'PUT',
-        body: JSON.stringify({ upiId }),
-      });
-      setSaveNotice('✅ Payout UPI ID updated successfully!');
-      if (refreshProfile) refreshProfile();
-      setTimeout(() => setSaveNotice(null), 3000);
-    } catch (err: any) {
-      setSaveNotice(`❌ ${err.message || 'Failed to update UPI ID'}`);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const registeredUpi = driver?.upiId || 'Registered during onboarding';
 
   return (
     <div className="h-full w-full bg-safar-bg p-4 pt-2 pb-[max(7rem,env(safe-area-inset-bottom,32px))] max-w-lg mx-auto space-y-5 rapido-scroll-container">
@@ -67,48 +44,25 @@ export const DriverProfileView: React.FC = () => {
         </div>
       </div>
 
-      {/* Payout UPI Setup Section */}
-      <div className="bg-gradient-to-br from-[#1A2332] to-[#11151D] p-5 rounded-3xl border border-safar-teal/40 shadow-xl space-y-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-safar-teal/20 text-safar-teal flex items-center justify-center border border-safar-teal/30">
-            <CreditCard className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-black text-white">Default Payout Bank Account (UPI)</h3>
-            <p className="text-[11px] text-safar-textMuted font-medium">Auto-fills when requesting instant payouts.</p>
-          </div>
-        </div>
-
-        <form onSubmit={handleSaveUpi} className="space-y-2.5 pt-1">
-          <div>
-            <label className="text-[10px] font-black uppercase text-safar-textMuted tracking-wider block mb-1">
-              Your UPI ID (Paytm / PhonePe / GPay / BHIM)
-            </label>
-            <input
-              type="text"
-              required
-              value={upiId}
-              onChange={(e) => setUpiId(e.target.value)}
-              placeholder="e.g. 9876543210@paytm or name@upi"
-              className="w-full py-3 px-4 bg-[#0D1117] border border-safar-teal/40 rounded-2xl text-white font-bold text-xs focus:outline-none focus:border-safar-teal transition-all"
-            />
-          </div>
-
-          {saveNotice && (
-            <div className={`text-xs font-bold ${saveNotice.startsWith('✅') ? 'text-emerald-400' : 'text-red-400'}`}>
-              {saveNotice}
+      {/* Auto-Onboarded Payout Bank Account (UPI) Display Card */}
+      <div className="bg-gradient-to-br from-[#1A2332] to-[#11151D] p-5 rounded-3xl border border-safar-teal/40 shadow-xl space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-safar-teal/20 text-safar-teal flex items-center justify-center border border-safar-teal/30">
+              <CreditCard className="w-5 h-5" />
             </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full py-3 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-black text-xs rounded-xl shadow-lg flex items-center justify-center space-x-1.5 active:scale-95 transition-all"
-          >
-            <Save className="w-4 h-4" />
-            <span>{saving ? 'Saving UPI ID...' : 'Save Default Payout UPI'}</span>
-          </button>
-        </form>
+            <div>
+              <h3 className="text-xs font-black uppercase text-safar-textMuted tracking-wider">Onboarded Payout UPI Account</h3>
+              <div className="text-sm font-black text-white font-mono mt-0.5">{registeredUpi}</div>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-[10px]">
+            Verified
+          </span>
+        </div>
+        <p className="text-[11px] text-safar-textMuted font-medium pt-1 border-t border-white/5">
+          🗓️ Monthly net earnings automatically transfer to this account on the 1st & 2nd of every month.
+        </p>
       </div>
 
       {/* Vehicle & License Info */}
@@ -149,7 +103,7 @@ export const DriverProfileView: React.FC = () => {
 
       <div className="text-center pt-2">
         <span className="px-3 py-1 bg-safar-surface border border-safar-teal/30 text-safar-teal text-[10px] font-black rounded-full uppercase tracking-wider">
-          SAFAR Partner v1.0.100 (Build 100)
+          SAFAR Partner v1.0.102 (Build 102)
         </span>
       </div>
     </div>

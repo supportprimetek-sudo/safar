@@ -35,34 +35,31 @@
     -webkit-user-select: text !important;
   }
 
-  /* Rapido / Uber Native Android Fixed Screen Architecture */
-  html, body, #root {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-x: none !important;
-    overscroll-behavior-y: none !important;
-    touch-action: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
+  /* Native Mobile Touch & Smooth Scroll Architecture */
+  html, body {
     margin: 0 !important;
     padding: 0 !important;
-  }
-
-  body {
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
     background-color: #11151D;
     color: #FFFFFF;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
+
+  #root {
+    min-height: 100% !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
 }
 
-/* Rapido Scroll Container - Only sheet content scrolls, window stays 100% frozen */
+/* Rapido Scroll Container */
 .rapido-scroll-container {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
