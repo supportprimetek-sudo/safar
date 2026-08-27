@@ -244,28 +244,16 @@ export const ActiveTrip: React.FC = () => {
               <span>{showQr ? 'Hide Rider Payment QR' : 'Show Rider Payment QR Code'}</span>
             </button>
 
-            {/* 2 Payment Mode Buttons: Cash Received & Confirm Online (QR) */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleConfirmPayment('CASH')}
-                disabled={actionLoading}
-                className="py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all shadow-lg border border-emerald-400/30"
-              >
-                <Banknote className="w-4 h-4" />
-                <span>Cash Received</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleConfirmPayment('UPI')}
-                disabled={actionLoading}
-                className="py-3.5 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all shadow-lg"
-              >
-                <QrCode className="w-4 h-4" />
-                <span>Confirm Online (QR)</span>
-              </button>
-            </div>
+            {/* Payment Mode Button: Confirm Online (QR) */}
+            <button
+              type="button"
+              onClick={() => handleConfirmPayment('UPI')}
+              disabled={actionLoading}
+              className="w-full py-4 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-black text-sm rounded-2xl flex items-center justify-center space-x-2 active:scale-95 transition-all shadow-xl"
+            >
+              <QrCode className="w-5 h-5" />
+              <span>📲 Confirm Online (QR) Payment</span>
+            </button>
           </div>
         ) : null}
       </div>

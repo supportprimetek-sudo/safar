@@ -138,28 +138,22 @@ export async function getEarnings(req: AuthRequest, res: Response) {
     let cashEarnings = 0;
     let qrEarnings = 0;
 
-    // 1. Calculate from completed rides
+    // 1. Calculate ONLY from completed rides where payment status is PAID (confirmed by Rider/Driver)
     for (const r of completedRides) {
-      const fare = Number(r.finalFare || r.estimatedFare || r.payment?.amount || 0);
-      grossEarnings += fare;
-      const pMethod = r.payment?.paymentMethod || 'CASH';
-      if (pMethod === 'QR' || pMethod === 'UPI' || pMethod === 'ONLINE') {
+      const isPaymentConfirmed = r.payment?.paymentStatus === 'PAID' || !!r.payment?.confirmedAt;
+      if (isPaymentConfirmed) {
+        const fare = Number(r.finalFare || r.estimatedFare || r.payment?.amount || 0);
+        grossEarnings += fare;
         qrEarnings += fare;
-      } else {
-        cashEarnings += fare;
       }
     }
 
-    // 2. Include any payment records with status PAID not captured in completedRides above
+    // 2. Include any additional PAID payments for this driver
     for (const p of payments) {
       if (p.paymentStatus === 'PAID' && !completedRides.some((r) => r.id === p.rideId)) {
         const fare = Number(p.amount || 0);
         grossEarnings += fare;
-        if (p.paymentMethod === 'QR' || p.paymentMethod === 'UPI' || p.paymentMethod === 'ONLINE') {
-          qrEarnings += fare;
-        } else {
-          cashEarnings += fare;
-        }
+        qrEarnings += fare;
       }
     }
 

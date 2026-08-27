@@ -44,8 +44,7 @@ export const RideManagement: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-white/5">
             {rides.map((r) => {
-              const pMethod = r.payment?.paymentMethod || r.paymentMethod || 'CASH';
-              const isPaid = r.payment?.paymentStatus === 'PAID' || r.rideStatus === 'COMPLETED';
+              const isPaid = r.payment?.paymentStatus === 'PAID';
 
               return (
                 <tr key={r.id} className="hover:bg-safar-surface/50 transition-colors">
@@ -60,18 +59,12 @@ export const RideManagement: React.FC = () => {
                   <td className="p-4 font-black text-white text-sm">₹{r.finalFare || r.estimatedFare}</td>
                   <td className="p-4">
                     {isPaid ? (
-                      pMethod === 'CASH' ? (
-                        <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full font-black text-[10px] inline-flex items-center space-x-1">
-                          💵 Cash
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-[10px] inline-flex items-center space-x-1">
-                          📲 Online QR
-                        </span>
-                      )
+                      <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-[10px] inline-flex items-center space-x-1">
+                        📲 Online QR Paid
+                      </span>
                     ) : (
                       <span className="px-2.5 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-bold text-[10px]">
-                        ⏳ Pending
+                        ⏳ Unconfirmed (Unpaid)
                       </span>
                     )}
                   </td>

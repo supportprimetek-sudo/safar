@@ -253,43 +253,66 @@ export const EarningsView: React.FC = () => {
               ✕
             </button>
 
-            <div className="w-14 h-14 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center mx-auto text-2xl font-black border border-safar-teal/30">
-              💳
+            <div className="w-14 h-14 rounded-2xl bg-safar-teal/20 text-safar-teal flex items-center justify-center mx-auto shadow-lg border border-safar-teal/40">
+              <Wallet className="w-7 h-7" />
             </div>
 
             <div>
-              <h3 className="text-lg font-black text-white">Instant Payout Withdrawal</h3>
-              <p className="text-xs text-safar-textMuted mt-0.5">Transfer net wallet balance directly to your UPI ID.</p>
+              <h3 className="text-xl font-black text-white">Instant Payout Withdrawal</h3>
+              <p className="text-xs text-safar-textMuted mt-1 font-medium">Request instant transfer of your net earnings directly to your UPI ID.</p>
             </div>
 
-            <form onSubmit={handleRequestPayout} className="space-y-3.5 text-left">
+            <form onSubmit={handleRequestPayout} className="space-y-4 text-left pt-1">
               <div>
-                <label className="text-[11px] font-extrabold uppercase text-safar-textMuted block mb-1">
-                  Withdrawal Amount (₹)
-                </label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-[11px] font-black uppercase text-safar-textMuted tracking-wider">
+                    Withdrawal Amount (₹)
+                  </label>
+                  <span className="text-[10px] text-safar-teal font-extrabold">Available: ₹{wallet}</span>
+                </div>
                 <input
                   type="number"
                   required
                   min={100}
-                  max={earnings.walletBalance || 10000}
                   value={payoutAmount}
                   onChange={(e) => setPayoutAmount(e.target.value)}
                   placeholder="Min ₹100"
-                  className="w-full py-3 px-4 bg-safar-surface border border-white/20 rounded-2xl text-white font-black text-lg focus:outline-none focus:border-safar-teal transition-all"
+                  className="w-full py-3.5 px-4 bg-[#11151D] border border-safar-teal/40 rounded-2xl text-white font-black text-xl focus:outline-none focus:border-safar-teal shadow-inner transition-all"
                 />
+
+                {/* Fast Preset Amount Selector Pills */}
+                <div className="flex items-center space-x-2 mt-2.5 overflow-x-auto pb-1">
+                  {[100, 500, 1000].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setPayoutAmount(preset.toString())}
+                      className="px-3 py-1.5 bg-safar-surface hover:bg-safar-teal/20 hover:text-safar-teal border border-white/10 rounded-xl text-xs font-bold text-white transition-all active:scale-95 flex-1"
+                    >
+                      ₹{preset}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setPayoutAmount(wallet.toString())}
+                    className="px-3 py-1.5 bg-safar-teal/20 text-safar-teal border border-safar-teal/40 rounded-xl text-xs font-extrabold transition-all active:scale-95 flex-1"
+                  >
+                    Full ₹{wallet}
+                  </button>
+                </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-extrabold uppercase text-safar-textMuted block mb-1">
-                  Your UPI ID (Paytm / PhonePe / GPay)
+                <label className="text-[11px] font-black uppercase text-safar-textMuted tracking-wider block mb-1.5">
+                  Target UPI ID (Paytm / PhonePe / GPay / BHIM)
                 </label>
                 <input
                   type="text"
                   required
                   value={payoutUpiId}
                   onChange={(e) => setPayoutUpiId(e.target.value)}
-                  placeholder="9876543210@paytm or name@upi"
-                  className="w-full py-3 px-4 bg-safar-surface border border-white/20 rounded-2xl text-white font-bold text-xs focus:outline-none focus:border-safar-teal transition-all"
+                  placeholder="e.g. 9876543210@paytm or name@upi"
+                  className="w-full py-3.5 px-4 bg-[#11151D] border border-safar-teal/40 rounded-2xl text-white font-bold text-xs focus:outline-none focus:border-safar-teal shadow-inner transition-all"
                 />
               </div>
 
@@ -297,16 +320,16 @@ export const EarningsView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPayoutModal(false)}
-                  className="py-3 bg-safar-card border border-white/10 text-white font-extrabold text-xs rounded-xl hover:bg-safar-surface active:scale-95 transition-all"
+                  className="py-3.5 bg-safar-card border border-white/10 text-white font-extrabold text-xs rounded-2xl hover:bg-safar-surface active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={payoutLoading}
-                  className="py-3 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-black text-xs rounded-xl shadow-lg active:scale-95 transition-all"
+                  className="py-3.5 bg-safar-teal hover:bg-safar-tealHover disabled:opacity-50 text-safar-bg font-black text-xs rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-1.5"
                 >
-                  {payoutLoading ? 'Processing...' : 'Transfer Now'}
+                  <span>{payoutLoading ? 'Submitting...' : '🚀 Submit Payout Request'}</span>
                 </button>
               </div>
             </form>
