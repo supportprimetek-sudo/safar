@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { DollarSign, TrendingUp, CreditCard, Banknote, QrCode, ArrowUpRight, Award, Car, Wallet, ArrowDownRight, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const EarningsView: React.FC = () => {
