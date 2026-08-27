@@ -252,15 +252,6 @@ export async function requestPayout(req: AuthRequest, res: Response) {
       .filter((p) => p.status !== 'REJECTED')
       .reduce((acc, p) => acc + Number(p.amount), 0);
 
-    const availableBalance = Math.max(driverProfile.walletBalance || 0, Math.max(0, netEarnings - totalPayoutsRequested));
-
-    if (availableBalance < reqAmount) {
-      return res.status(400).json({
-        success: false,
-        message: `Insufficient payout balance. Available for Payout: ₹${availableBalance}`,
-      });
-    }
-
     const cleanUpiId = upiId.trim();
 
     // Create payout request with status PENDING for Admin Review & Approval

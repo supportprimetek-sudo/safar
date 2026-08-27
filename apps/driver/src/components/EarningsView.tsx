@@ -73,20 +73,27 @@ export const EarningsView: React.FC = () => {
           });
         }
       }
-      setPayoutNotice({
-        title: 'Payout Request Submitted',
-        message: res?.message || `🎉 Your payout request of ₹${amt} to ${payoutUpiId} has been submitted for Admin approval (Transfer within 24h)!`,
-      });
-      setShowPayoutModal(false);
-      await loadData();
+      if (res && res.success !== false) {
+        setPayoutNotice({
+          title: 'Payout Request Submitted',
+          message: res.message || `🎉 Your payout request of ₹${amt} to ${payoutUpiId} has been submitted for Admin approval (Transfer within 24h)!`,
+          isError: false,
+        });
+        setShowPayoutModal(false);
+        await loadData();
+      } else {
+        setPayoutNotice({
+          title: 'Payout Submission Error',
+          message: res?.message || 'Failed to register payout request on server. Please try again.',
+          isError: true,
+        });
+      }
     } catch (err: any) {
       setPayoutNotice({
-        title: 'Payout Request Submitted',
-        message: `🎉 Your payout request of ₹${amt} to ${payoutUpiId} has been registered for Admin review. Funds will be transferred within 24 hours.`,
-        isError: false,
+        title: 'Network Error',
+        message: err.message || 'Unable to connect to SAFAR servers. Please check your internet connection.',
+        isError: true,
       });
-      setShowPayoutModal(false);
-      await loadData();
     } finally {
       setPayoutLoading(false);
     }
