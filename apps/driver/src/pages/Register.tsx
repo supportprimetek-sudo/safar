@@ -12,6 +12,7 @@ export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [upiId, setUpiId] = useState('');
   const [vehicleTypeId, setVehicleTypeId] = useState('');
   const [vehicles, setVehicles] = useState<VehicleType[]>([]);
   const [error, setError] = useState('');
@@ -33,9 +34,13 @@ export const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!upiId || !upiId.includes('@')) {
+      setError('Please enter a valid Payout UPI ID (e.g. 9876543210@paytm or name@upi)');
+      return;
+    }
     setLoading(true);
     try {
-      await register({ fullName, email, phone, password, vehicleTypeId });
+      await register({ fullName, email, phone, password, vehicleTypeId, upiId, role: 'DRIVER' });
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Driver registration failed');
@@ -106,6 +111,26 @@ export const Register: React.FC = () => {
                   className="w-full pl-12 pr-4 py-3 bg-safar-surface border border-white/10 rounded-2xl text-white placeholder-safar-textMuted/50 focus:outline-none focus:border-safar-teal text-sm"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-safar-textMuted uppercase mb-1">
+                Payout Bank Account (UPI ID) *
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-3.5 text-safar-teal font-extrabold text-xs">UPI</div>
+                <input
+                  type="text"
+                  required
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="9876543210@paytm or name@upi"
+                  className="w-full pl-14 pr-4 py-3 bg-safar-surface border border-safar-teal/40 rounded-2xl text-white placeholder-safar-textMuted/50 focus:outline-none focus:border-safar-teal text-sm font-bold"
+                />
+              </div>
+              <p className="text-[10px] text-safar-teal/80 font-bold mt-1">
+                🗓️ Monthly earnings auto-transfer to this UPI on 1st & 2nd of every month.
+              </p>
             </div>
 
             <div>

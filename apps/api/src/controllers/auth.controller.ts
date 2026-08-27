@@ -44,10 +44,16 @@ export async function register(req: Request, res: Response) {
         },
       });
     } else if (role === 'DRIVER') {
+      const { upiId } = req.body;
+      if (!upiId || !upiId.trim()) {
+        return res.status(400).json({ success: false, message: 'Payout UPI ID (GPay/PhonePe/Paytm/BHIM) is mandatory for Driver onboarding' });
+      }
+
       await prisma.driverProfile.create({
         data: {
           userId: user.id,
           phone,
+          upiId: upiId.trim(),
           vehicleTypeId: vehicleTypeId || null,
           kycStatus: 'PENDING',
           driverStatus: 'PENDING',
