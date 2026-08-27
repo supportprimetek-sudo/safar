@@ -35,6 +35,8 @@ export const EarningsView: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleRequestPayout = async (e: React.FormEvent) => {

@@ -14,8 +14,8 @@ export const PayoutManagement: React.FC = () => {
   const [rejectReason, setRejectReason] = useState('Insufficient valid account balance / verification requirement not met');
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchPayouts = async () => {
-    setLoading(true);
+  const fetchPayouts = async (showSpinner = false) => {
+    if (showSpinner) setLoading(true);
     setError(null);
     try {
       let res;
@@ -43,8 +43,8 @@ export const PayoutManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchPayouts();
-    const interval = setInterval(fetchPayouts, 5000);
+    fetchPayouts(true);
+    const interval = setInterval(() => fetchPayouts(false), 3000);
     return () => clearInterval(interval);
   }, []);
 
