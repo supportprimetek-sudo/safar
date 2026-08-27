@@ -29,6 +29,11 @@ async function getDashboardStats(req, res) {
         const cancelledRides = await prisma_1.prisma.ride.count({ where: { rideStatus: 'CANCELLED' } });
         const payments = await prisma_1.prisma.payment.findMany({ where: { paymentStatus: 'PAID' } });
         const totalRevenue = payments.reduce((acc, p) => acc + p.amount, 0);
+        let pendingPayoutsCount = 0;
+        try {
+            pendingPayoutsCount = await prisma_1.prisma.payoutRequest.count({ where: { status: 'PENDING' } });
+        }
+        catch (e) { }
         return res.json({
             success: true,
             data: {
@@ -36,6 +41,7 @@ async function getDashboardStats(req, res) {
                 totalDrivers,
                 activeDrivers,
                 pendingKyc,
+                pendingPayoutsCount,
                 totalRides,
                 activeRides,
                 completedRides,

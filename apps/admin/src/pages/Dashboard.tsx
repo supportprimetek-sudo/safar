@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { Users, Car, DollarSign, Route, FileCheck, CheckCircle2, XCircle, Activity } from 'lucide-react';
 
@@ -27,14 +28,14 @@ export const Dashboard: React.FC = () => {
   }
 
   const cards = [
-    { label: 'Total Revenue', value: `₹${stats?.totalRevenue || 0}`, icon: DollarSign, color: 'text-safar-teal', bg: 'bg-safar-teal/20' },
-    { label: 'Active Rides Now', value: stats?.activeRides || 0, icon: Route, color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
-    { label: 'Active Online Drivers', value: stats?.activeDrivers || 0, icon: Activity, color: 'text-green-400', bg: 'bg-green-500/20' },
-    { label: 'Pending KYC Queue', value: stats?.pendingKyc || 0, icon: FileCheck, color: 'text-purple-400', bg: 'bg-purple-500/20' },
-    { label: 'Completed Rides', value: stats?.completedRides || 0, icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-500/20' },
-    { label: 'Cancelled Rides', value: stats?.cancelledRides || 0, icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/20' },
-    { label: 'Total Registered Drivers', value: stats?.totalDrivers || 0, icon: Car, color: 'text-safar-teal', bg: 'bg-safar-surface' },
-    { label: 'Total Registered Riders', value: stats?.totalRiders || 0, icon: Users, color: 'text-safar-teal', bg: 'bg-safar-surface' },
+    { label: 'Total Revenue', value: `₹${stats?.totalRevenue || 0}`, icon: DollarSign, color: 'text-safar-teal', bg: 'bg-safar-teal/20', link: '/payouts' },
+    { label: 'Pending Driver Payouts', value: stats?.pendingPayoutsCount || 0, icon: DollarSign, color: 'text-amber-400', bg: 'bg-amber-500/20', link: '/payouts' },
+    { label: 'Active Rides Now', value: stats?.activeRides || 0, icon: Route, color: 'text-yellow-400', bg: 'bg-yellow-500/20', link: '/rides' },
+    { label: 'Active Online Drivers', value: stats?.activeDrivers || 0, icon: Activity, color: 'text-green-400', bg: 'bg-green-500/20', link: '/drivers' },
+    { label: 'Pending KYC Queue', value: stats?.pendingKyc || 0, icon: FileCheck, color: 'text-purple-400', bg: 'bg-purple-500/20', link: '/kyc' },
+    { label: 'Completed Rides', value: stats?.completedRides || 0, icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-500/20', link: '/rides' },
+    { label: 'Cancelled Rides', value: stats?.cancelledRides || 0, icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/20', link: '/rides' },
+    { label: 'Total Registered Drivers', value: stats?.totalDrivers || 0, icon: Car, color: 'text-safar-teal', bg: 'bg-safar-surface', link: '/drivers' },
   ];
 
   return (
@@ -50,7 +51,7 @@ export const Dashboard: React.FC = () => {
         {cards.map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="bg-safar-card p-5 rounded-3xl border border-white/5 space-y-3 shadow-xl hover:border-white/20 transition-all">
+            <Link key={i} to={c.link || '/'} className="bg-safar-card p-5 rounded-3xl border border-white/5 space-y-3 shadow-xl hover:border-safar-teal/40 active:scale-98 transition-all block">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-bold text-safar-textMuted uppercase tracking-wider">{c.label}</span>
                 <div className={`w-10 h-10 rounded-2xl ${c.bg} ${c.color} flex items-center justify-center`}>
@@ -58,7 +59,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-3xl font-black text-white">{c.value}</div>
-            </div>
+            </Link>
           );
         })}
       </div>
