@@ -146,6 +146,12 @@ export const DriverProfileView: React.FC = () => {
         <LogOut className="w-5 h-5" />
         <span>Log Out Partner Account</span>
       </button>
+
+      <div className="text-center pt-2">
+        <span className="px-3 py-1 bg-safar-surface border border-safar-teal/30 text-safar-teal text-[10px] font-black rounded-full uppercase tracking-wider">
+          SAFAR Partner v1.0.100 (Build 100)
+        </span>
+      </div>
     </div>
   );
 };
