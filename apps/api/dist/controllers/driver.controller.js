@@ -218,6 +218,11 @@ async function requestPayout(req, res) {
             .filter((p) => p.status !== 'REJECTED')
             .reduce((acc, p) => acc + Number(p.amount), 0);
         const cleanUpiId = upiId.trim();
+        // Auto-update default upiId in driver profile
+        await prisma_1.prisma.driverProfile.update({
+            where: { id: driverProfile.id },
+            data: { upiId: cleanUpiId },
+        }).catch(() => { });
         // Create payout request with status PENDING for Admin Review & Approval
         const payout = await prisma_1.prisma.payoutRequest.create({
             data: {

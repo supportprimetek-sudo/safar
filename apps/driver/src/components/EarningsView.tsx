@@ -22,16 +22,24 @@ export const EarningsView: React.FC = () => {
   const [payoutLoading, setPayoutLoading] = useState(false);
   const [payoutNotice, setPayoutNotice] = useState<{ title: string; message: string; isError?: boolean } | null>(null);
 
+  const { user } = useAuth();
+
   const loadData = async () => {
     try {
       const res = await apiFetch('/api/drivers/earnings');
       if (res.data) {
         setEarnings((prev: any) => ({ ...prev, ...res.data }));
         if (res.data.upiId && !payoutUpiId) setPayoutUpiId(res.data.upiId);
-        if (res.data.walletBalance) setPayoutAmount(res.data.walletBalance.toString());
+        if (res.data.walletBalance && !payoutAmount) setPayoutAmount(res.data.walletBalance.toString());
       }
     } catch (err) {}
   };
+
+  useEffect(() => {
+    if (user?.driverProfile?.upiId && !payoutUpiId) {
+      setPayoutUpiId(user.driverProfile.upiId);
+    }
+  }, [user]);
 
   useEffect(() => {
     loadData();

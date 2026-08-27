@@ -181,7 +181,7 @@ export async function updateProfile(req: AuthRequest, res: Response) {
   try {
     if (!req.user) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
-    const { fullName, phone, emergencyContact } = req.body;
+    const { fullName, phone, emergencyContact, upiId } = req.body;
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
@@ -198,7 +198,14 @@ export async function updateProfile(req: AuthRequest, res: Response) {
       });
     }
 
-    return res.json({ success: true, message: 'Profile updated', data: updatedUser });
+    if (req.user.role === 'DRIVER' && upiId !== undefined) {
+      await prisma.driverProfile.update({
+        where: { userId: req.user.id },
+        data: { upiId: upiId.trim() },
+      }).catch(() => {});
+    }
+
+    return res.json({ success: true, message: 'Profile updated successfully', data: updatedUser });
   } catch (err: any) {
     return res.status(500).json({ success: false, message: err.message });
   }

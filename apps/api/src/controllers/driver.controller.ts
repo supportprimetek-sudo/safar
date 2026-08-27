@@ -248,6 +248,12 @@ export async function requestPayout(req: AuthRequest, res: Response) {
 
     const cleanUpiId = upiId.trim();
 
+    // Auto-update default upiId in driver profile
+    await prisma.driverProfile.update({
+      where: { id: driverProfile.id },
+      data: { upiId: cleanUpiId },
+    }).catch(() => {});
+
     // Create payout request with status PENDING for Admin Review & Approval
     const payout = await prisma.payoutRequest.create({
       data: {
