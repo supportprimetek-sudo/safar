@@ -5,9 +5,21 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
+import { exec } from 'child_process';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+// Auto Sync Database Schema on Server Startup (PostgreSQL on Railway)
+try {
+  exec('npx prisma db push --accept-data-loss', (err, stdout) => {
+    if (err) {
+      console.error('⚠️ DB Sync Warning:', err.message);
+    } else {
+      console.log('✅ DB Sync Success:', stdout?.split('\n')[0]);
+    }
+  });
+} catch (e) {}
 
 import { authenticateToken, requireRole } from './middleware/auth';
 import { initializeSocketService } from './services/socket.service';

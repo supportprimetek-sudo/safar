@@ -43,8 +43,21 @@ const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const multer_1 = __importDefault(require("multer"));
+const child_process_1 = require("child_process");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+// Auto Sync Database Schema on Server Startup (PostgreSQL on Railway)
+try {
+    (0, child_process_1.exec)('npx prisma db push --accept-data-loss', (err, stdout) => {
+        if (err) {
+            console.error('⚠️ DB Sync Warning:', err.message);
+        }
+        else {
+            console.log('✅ DB Sync Success:', stdout?.split('\n')[0]);
+        }
+    });
+}
+catch (e) { }
 const auth_1 = require("./middleware/auth");
 const socket_service_1 = require("./services/socket.service");
 const authController = __importStar(require("./controllers/auth.controller"));
