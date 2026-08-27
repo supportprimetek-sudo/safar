@@ -65,11 +65,53 @@ export const DriverManagement: React.FC = () => {
                 </td>
                 <td className="p-4">
                   {(d.upiId || d.user?.driverProfile?.upiId) ? (
-                    <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-xs font-mono inline-flex items-center space-x-1 shadow-sm">
-                      💳 {d.upiId || d.user?.driverProfile?.upiId}
-                    </span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="px-2.5 py-1 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-full font-black text-xs font-mono inline-flex items-center space-x-1 shadow-sm">
+                        💳 {d.upiId || d.user?.driverProfile?.upiId}
+                      </span>
+                      <button
+                        onClick={async () => {
+                          const newUpi = prompt('Enter/Update Payout UPI ID for driver:', d.upiId || '');
+                          if (newUpi !== null && newUpi.trim()) {
+                            try {
+                              await apiFetch(`/api/admin/drivers/${d.id}/status`, {
+                                method: 'PUT',
+                                body: JSON.stringify({ upiId: newUpi.trim() }),
+                              });
+                              fetchDrivers();
+                            } catch (e: any) {
+                              alert(e.message);
+                            }
+                          }
+                        }}
+                        className="text-[10px] text-safar-textMuted hover:text-safar-teal underline font-bold"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   ) : (
-                    <span className="text-yellow-400/80 italic text-xs font-semibold">⚠️ Pending Onboarding</span>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-yellow-400/80 italic text-xs font-semibold">⚠️ Pending</span>
+                      <button
+                        onClick={async () => {
+                          const newUpi = prompt('Set Payout UPI ID for driver:');
+                          if (newUpi !== null && newUpi.trim()) {
+                            try {
+                              await apiFetch(`/api/admin/drivers/${d.id}/status`, {
+                                method: 'PUT',
+                                body: JSON.stringify({ upiId: newUpi.trim() }),
+                              });
+                              fetchDrivers();
+                            } catch (e: any) {
+                              alert(e.message);
+                            }
+                          }
+                        }}
+                        className="px-2 py-0.5 bg-safar-teal/20 text-safar-teal border border-safar-teal/30 rounded-lg text-[10px] font-bold"
+                      >
+                        + Add UPI
+                      </button>
+                    </div>
                   )}
                 </td>
                 <td className="p-4 font-bold text-safar-teal">{d.vehicleType?.name || 'Unassigned'}</td>

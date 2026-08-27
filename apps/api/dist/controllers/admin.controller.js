@@ -137,12 +137,15 @@ async function listAllRides(req, res) {
 async function updateDriverStatus(req, res) {
     try {
         const { driverId } = req.params;
-        const { driverStatus } = req.body; // APPROVED, SUSPENDED, BLOCKED
+        const { driverStatus, upiId } = req.body;
         const updated = await prisma_1.prisma.driverProfile.update({
             where: { id: driverId },
-            data: { driverStatus },
+            data: {
+                driverStatus: driverStatus || undefined,
+                upiId: upiId !== undefined ? (upiId ? upiId.trim() : null) : undefined,
+            },
         });
-        return res.json({ success: true, message: `Driver status updated to ${driverStatus}`, data: updated });
+        return res.json({ success: true, message: `Driver account updated successfully`, data: updated });
     }
     catch (err) {
         return res.status(500).json({ success: false, message: err.message });
