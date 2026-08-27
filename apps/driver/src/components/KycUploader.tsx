@@ -9,10 +9,12 @@ export const KycUploader: React.FC = () => {
   const [uploading, setUploading] = useState<string | null>(null);
 
   const docTypes = [
-    { type: 'AADHAAR_FRONT', label: 'Aadhaar Card Front' },
-    { type: 'AADHAAR_BACK', label: 'Aadhaar Card Back' },
-    { type: 'LICENCE_FRONT', label: 'Driving Licence Front' },
-    { type: 'LICENCE_BACK', label: 'Driving Licence Back' },
+    { type: 'AADHAAR_FRONT', label: 'Aadhaar Card Front', category: 'Identity' },
+    { type: 'AADHAAR_BACK', label: 'Aadhaar Card Back', category: 'Identity' },
+    { type: 'LICENCE_FRONT', label: 'Driving Licence Front', category: 'Licence' },
+    { type: 'LICENCE_BACK', label: 'Driving Licence Back', category: 'Licence' },
+    { type: 'RC_FRONT', label: 'Vehicle RC Book (Front)', category: 'Vehicle' },
+    { type: 'VEHICLE_PHOTO', label: 'Vehicle Photo with Plate', category: 'Vehicle' },
   ];
 
   const handleFileUpload = async (documentType: string, file: File) => {

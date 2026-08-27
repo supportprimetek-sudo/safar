@@ -35,34 +35,36 @@
     -webkit-user-select: text !important;
   }
 
-  /* Native Mobile Touch & Smooth Scroll Architecture */
-  html, body {
+  /* Native Mobile Touch & Single Document Scroll Architecture */
+  html {
+    background-color: #11151D !important;
+    color: #FFFFFF !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    scroll-behavior: smooth !important;
+  }
+
+  body {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    height: 100% !important;
+    min-height: 100vh !important;
+    background-color: #11151D !important;
+    color: #FFFFFF !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     touch-action: pan-y !important;
-    background-color: #11151D;
-    color: #FFFFFF;
-    font-family: 'Plus Jakarta Sans', sans-serif;
   }
 
   #root {
-    min-height: 100% !important;
+    min-height: 100vh !important;
     width: 100% !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    touch-action: pan-y !important;
   }
 }
 
 /* Rapido Scroll Container */
 .rapido-scroll-container {
-  overflow-y: auto !important;
-  overscroll-behavior: contain !important;
   -webkit-overflow-scrolling: touch !important;
   touch-action: pan-y !important;
 }
