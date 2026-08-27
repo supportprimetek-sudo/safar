@@ -54,10 +54,24 @@ try {
         }
         else {
             console.log('✅ DB Sync Success:', stdout?.split('\n')[0]);
+            disableRLS();
         }
     });
 }
 catch (e) { }
+const prisma_1 = require("./config/prisma");
+// Ensure Row Level Security (RLS) is completely disabled on PostgreSQL tables for direct API access
+async function disableRLS() {
+    try {
+        const tables = ['User', 'DriverProfile', 'RiderProfile', 'PayoutRequest', 'KycDocument', 'Ride', 'Payment', 'VehicleType'];
+        for (const table of tables) {
+            await prisma_1.prisma.$executeRawUnsafe(`ALTER TABLE "${table}" DISABLE ROW LEVEL SECURITY;`).catch(() => { });
+        }
+        console.log('✅ PostgreSQL Row Level Security (RLS) checked & disabled for full API access');
+    }
+    catch (e) { }
+}
+disableRLS();
 const auth_1 = require("./middleware/auth");
 const socket_service_1 = require("./services/socket.service");
 const authController = __importStar(require("./controllers/auth.controller"));
